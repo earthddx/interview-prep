@@ -12,6 +12,7 @@ const TOPICS = [
   { id: 'eventdriven',   label: 'Event-Driven System' },
   { id: 'microfrontend', label: 'Microfrontend' },
   { id: 'cicd',          label: 'CI/CD & DevSecOps Pipeline' },
+  { id: 'nextrag',       label: 'RAG App (next-rag)' },
 ];
 
 const AWS_REF = [
@@ -363,6 +364,110 @@ CodePipeline / GitHub Actions
         <li><strong>Canary:</strong> Roll out 5% → 20% → 100%. Monitor error rates. Auto-rollback.</li>
         <li><strong>Feature Flags:</strong> LaunchDarkly / AWS AppConfig — decouple deploy from release</li>
       </ul>
+    </Card>
+  ),
+  nextrag: (
+    <Card>
+      <CardHeader title="Design: RAG Application (next-rag)" tag="My Project" tagColor="blue" />
+      <div className="highlight green">
+        <p><strong>I built this.</strong> Use it as a concrete example of applying RAG architecture in a production Next.js app — walk the interviewer through any layer with confidence.</p>
+      </div>
+      <Accordion title="What It Does & Why RAG" defaultOpen>
+        <p>A document Q&amp;A app: upload a file, ask questions in natural language, get AI answers grounded in the document's content. RAG (Retrieval-Augmented Generation) prevents hallucinations by giving the LLM only relevant retrieved context rather than relying on its training data alone.</p>
+        <div className="arch-diagram">{`Without RAG: User Query → LLM → Answer (may hallucinate)
+With RAG:    User Query → Vector Search → Top-K Chunks
+                                          + Query → LLM → Grounded Answer`}</div>
+      </Accordion>
+      <Accordion title="Full Architecture Diagram">
+        <div className="arch-diagram">{`Browser (Next.js 16 App Router, React 19, Tailwind, shadcn/ui)
+  |
+  ├── Upload flow
+  │     ├── File sent to Next.js API Route
+  │     ├── Stored in Vercel Blob (CDN-backed object storage)
+  │     ├── Text extracted (pdf2json / mammoth / officeparser)
+  │     ├── Text chunked into segments
+  │     ├── Embedding generated per chunk (OpenAI / Anthropic)
+  │     └── Vectors + metadata saved → PostgreSQL + pgvector
+  │
+  └── Chat flow
+        ├── User query → embed query (same model)
+        ├── pgvector similarity search → Top-K relevant chunks
+        ├── Chunks + query → LLM prompt (Vercel AI SDK)
+        ├── Streamed response → UI
+        └── Conversation saved to PostgreSQL
+
+Auth: NextAuth.js + OAuth (per-user document isolation)
+DB:   PostgreSQL (Prisma ORM) + pgvector extension`}</div>
+      </Accordion>
+      <Accordion title="Key Design Decisions & Tradeoffs">
+        <ul>
+          <li><strong>Why pgvector over a dedicated vector DB?</strong> Keeps the stack simple — one DB handles relational data (users, documents, chat history) and vector search. Pinecone/Weaviate add operational overhead; pgvector is good enough for most scales.</li>
+          <li><strong>Why chunk text?</strong> LLMs have context limits. Chunking lets you retrieve only the relevant 3-5 paragraphs, keeping prompts lean and cost-effective.</li>
+          <li><strong>Why Vercel Blob?</strong> Avoids S3 setup complexity. Serverless, globally distributed, CDN-backed. Tradeoff: vendor lock-in.</li>
+          <li><strong>Why Vercel AI SDK?</strong> Provider-agnostic — swap OpenAI for Anthropic with one line. Handles streaming out of the box.</li>
+          <li><strong>Multi-user isolation:</strong> Each document is scoped to an authenticated user via NextAuth. Queries only search that user's vectors — enforced at the DB query layer.</li>
+        </ul>
+        <div className="highlight orange">
+          <p><strong>Tradeoff to mention:</strong> Chunk size is a tunable parameter. Large chunks = more context but noisier retrieval. Small chunks = precise retrieval but may lack context. Overlap between chunks helps with boundary cases.</p>
+        </div>
+      </Accordion>
+      <Accordion title="RAG Pipeline Code">
+        <CodeBlock>{`// 1. Generate embedding for a text chunk
+const embedding = await openai.embeddings.create({
+  model: 'text-embedding-3-small',
+  input: chunk,
+});
+
+// 2. Store in PostgreSQL with pgvector
+await prisma.$executeRaw\`
+  INSERT INTO embeddings (document_id, content, embedding)
+  VALUES (\${docId}, \${chunk}, \${embedding.data[0].embedding}::vector)
+\`;
+
+// 3. At query time — find top-K similar chunks
+const results = await prisma.$queryRaw\`
+  SELECT content, 1 - (embedding <=> \${queryEmbedding}::vector) AS similarity
+  FROM embeddings
+  WHERE document_id = \${docId}
+  ORDER BY embedding <=> \${queryEmbedding}::vector
+  LIMIT 5
+\`;
+
+// 4. Build prompt with retrieved context
+const context = results.map(r => r.content).join('\\n\\n');
+const prompt = \`Answer using only the context below:\\n\${context}\\n\\nQuestion: \${userQuery}\`;`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Scaling Considerations">
+        <div className="grid-2">
+          <div>
+            <h3>Current (Single-user scale)</h3>
+            <ul>
+              <li>PostgreSQL + pgvector on single instance</li>
+              <li>Vercel serverless functions for API routes</li>
+              <li>Synchronous embedding on upload</li>
+              <li>Good for: demos, small teams, MVPs</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Production Scale-Up</h3>
+            <ul>
+              <li>Async embedding via SQS + Lambda worker</li>
+              <li>pgvector index (IVFFlat/HNSW) for large datasets</li>
+              <li>Dedicated vector DB (Pinecone) at 100M+ vectors</li>
+              <li>Redis cache for frequent query embeddings</li>
+            </ul>
+          </div>
+        </div>
+      </Accordion>
+      <Accordion title="Security & Auth Design">
+        <ul>
+          <li><strong>NextAuth.js + OAuth:</strong> No password storage. Session tokens in httpOnly cookies.</li>
+          <li><strong>Row-level isolation:</strong> All DB queries filter by <code>userId</code> — a user can never retrieve another user's vectors.</li>
+          <li><strong>File validation:</strong> MIME type + size limit (10MB) enforced server-side before processing.</li>
+          <li><strong>Secrets:</strong> OpenAI/Anthropic API keys in env vars, never in client bundle.</li>
+          <li><strong>Prompt injection risk:</strong> A document could contain instructions to manipulate the LLM. Mitigation: system prompt instructs model to only answer from context; user content treated as data, not instructions.</li>
+        </ul>
+      </Accordion>
     </Card>
   ),
 };

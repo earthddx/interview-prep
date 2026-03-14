@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python3 -c \":*)",
-      "Bash(find d:/Projects/interview-prep/src -type f -name *.jsx -o -name *.js -o -name *.css)"
+      "Bash(find d:/Projects/interview-prep/src -type f -name *.jsx -o -name *.js -o -name *.css)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
