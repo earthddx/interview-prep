@@ -68,8 +68,73 @@ function StarBuilder() {
   );
 }
 
+const STAR_EXAMPLES = [
+  {
+    title: 'Led a complex technical project',
+    prompt: '"Tell me about a time you led a complex technical project from architecture to delivery."',
+    S: 'Our monolithic Node.js backend was becoming a bottleneck — deploys took 45 minutes, a single bug could take down unrelated features, and the team of 8 engineers were constantly stepping on each other. The business wanted to launch a new payments feature but the team lead flagged it would take 3 months inside the monolith.',
+    T: 'I volunteered to lead the extraction of the payments domain into a standalone microservice — design, implementation, and zero-downtime migration — while the rest of the team kept shipping on the monolith.',
+    A: 'I started with a PoC using the Strangler Fig pattern to validate we could intercept traffic at the API gateway without touching existing code. I wrote an ADR comparing REST vs async messaging for inter-service calls and proposed async (SQS) for non-critical flows and sync REST for real-time queries. I set up a separate CI/CD pipeline in GitHub Actions with independent test, security scan, and deploy stages. I ran a canary release at 5% traffic, monitored error rates and p99 latency in CloudWatch, then gradually shifted to 100%.',
+    R: 'Delivered in 6 weeks instead of 3 months. Deploy time for the payments service dropped from 45 minutes to 4 minutes. The monolith stabilised — unrelated incidents dropped by 60% in Q1. The pattern became the template for two further service extractions.',
+  },
+  {
+    title: 'Production incident you resolved',
+    prompt: '"Describe a significant production incident: how did you detect, diagnose, fix, and prevent it?"',
+    S: 'At 2am on a Tuesday, our e-commerce checkout API started returning 503s. It affected roughly 12% of users — those hitting one of our three EC2 instances. We had no on-call rotation at the time; I saw the PagerDuty alert come through and jumped on.',
+    T: 'As the most senior engineer available, I owned the incident: diagnose the root cause, restore service, and communicate clearly to the business — with no playbook to follow.',
+    A: 'I checked CloudWatch first — memory usage on the affected instance was at 99%, CPU was normal. I tailed the application logs and found a flood of uncaught promise rejections from a third-party shipping API that was timing out but not being handled — each request was leaking an event listener, exhausting memory over 2 hours. I immediately detached the instance from the load balancer to restore service to 100% of users, then deployed a hotfix adding a timeout and catch block. I sent a plain-English Slack update to the business every 20 minutes throughout. In the post-mortem I added memory utilisation as a CloudWatch alarm, set up automatic instance recycling, and added an integration test for the shipping API failure path.',
+    R: 'Service restored in 34 minutes. Memory alarm caught a recurrence 3 weeks later and auto-recycled the instance with zero user impact. The incident became the catalyst for formalising our on-call rota and runbooks.',
+  },
+  {
+    title: 'Process improvement you drove',
+    prompt: '"Tell me about a process improvement you drove — in CI/CD, code quality, or team workflow."',
+    S: 'Our team was merging directly to main with no automated checks. PRs were reviewed sporadically, and we\'d discovered two separate incidents where secrets were accidentally committed and pushed — one was a Stripe test key that had to be rotated.',
+    T: 'Nobody had formally been asked to fix this, but it was clearly a risk. I took ownership of designing and rolling out a CI/CD security baseline across all 11 repositories.',
+    A: 'I mapped out the risk surface first: no pre-commit hooks, no secret scanning, no SAST, dependency updates manual and infrequent. I introduced detect-secrets as a pre-commit hook (preventing commits containing credentials), added Trivy for container scanning and npm audit to the GitHub Actions pipeline as a required check, and configured Dependabot for weekly automated dependency PRs. I wrote a one-page ADR explaining each decision and ran a 30-minute team demo. To avoid slowing the team down, I made the pipeline fail fast — secret scan and lint ran first, heavier SAST ran in parallel.',
+    R: 'Zero secret leaks in the 8 months following rollout. CI feedback time dropped by 2 minutes (parallelisation). Dependabot caught and auto-merged 3 high-severity CVE patches before they were even discussed in a team meeting. The approach was adopted by a second team after they saw the results.',
+  },
+  {
+    title: 'Technical disagreement with a teammate',
+    prompt: '"How did you handle a technical disagreement with a teammate or manager? What was the outcome?"',
+    S: 'We were building a new internal dashboard and my teammate wanted to use a GraphQL API with a shared schema across the frontend and an ML pipeline. I felt a simple REST API was a better fit — the dashboard had well-defined, stable data needs and the ML team was on Python with no GraphQL tooling.',
+    T: 'We were at an impasse. Both of us had strong opinions and the tech lead wanted a decision within a week so the frontend team could start.',
+    A: 'Instead of escalating immediately, I proposed we each write a one-pager outlining our approach: technical justification, risks, and estimated effort. I kept mine factual — "our query patterns are fixed, REST gives us HTTP caching for free, and the ML team integration is a REST call anyway." My teammate\'s counter was that GraphQL would make future features easier to add. We brought both to the tech lead together and I explicitly said I was happy to be wrong — I wanted the best outcome for the team. The tech lead sided with REST for the MVP with an explicit note in the ADR that we\'d revisit if the query flexibility became a bottleneck.',
+    R: 'We shipped the dashboard on time. The REST API has been in production for 18 months with no need to revisit. More importantly, my teammate and I established a "write the one-pager first" norm that we still use for technical debates.',
+  },
+];
+
+function StarExamples() {
+  const labelColor = { S: 'var(--accent)', T: 'var(--accent5)', A: 'var(--accent2)', R: 'var(--accent4)' };
+  const labelName = { S: 'Situation', T: 'Task', A: 'Action', R: 'Result' };
+  return (
+    <Card>
+      <CardHeader title="STAR Example Stories" tag="Reference" tagColor="green" />
+      <div className="highlight"><p>Use these as templates — adapt the details to your own experience. The structure matters more than the specifics.</p></div>
+      {STAR_EXAMPLES.map(ex => (
+        <Accordion key={ex.title} title={ex.title}>
+          <div className="highlight" style={{ marginBottom: 12 }}><p><em>{ex.prompt}</em></p></div>
+          {['S', 'T', 'A', 'R'].map(k => (
+            <div key={k} style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ width: 22, height: 22, borderRadius: '50%', background: labelColor[k], color: 'var(--bg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{k}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--text-dim)' }}>{labelName[k]}</span>
+              </div>
+              <p style={{ margin: 0, paddingLeft: 30, fontSize: 13, lineHeight: 1.7, color: 'var(--text)' }}>{ex[k]}</p>
+            </div>
+          ))}
+        </Accordion>
+      ))}
+    </Card>
+  );
+}
+
 const CONTENT = {
-  star: <StarBuilder />,
+  star: (
+    <>
+      <StarBuilder />
+      <StarExamples />
+    </>
+  ),
   leadership: (
     <Card>
       <CardHeader title="Leadership & Ownership Questions" tag="INDG Core Values" tagColor="red" />
