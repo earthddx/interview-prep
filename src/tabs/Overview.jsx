@@ -17,7 +17,7 @@ export default function Overview() {
   const toggle = (i) => setChecked(c => ({ ...c, [i]: !c[i] }));
 
   return (
-    <div style={{ padding: 24, maxWidth: 1100 }}>
+    <div style={{ padding: 24 }}>
       {/* Banner */}
       <div style={{ background: 'linear-gradient(135deg,rgba(88,166,255,.1),rgba(210,168,255,.1))', border: '1px solid rgba(88,166,255,.3)', borderRadius: 12, padding: '16px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
