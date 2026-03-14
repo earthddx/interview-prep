@@ -12,7 +12,7 @@ const TABS = [
   { id: 'overview',   label: 'Overview',          badge: 'Home' },
   { id: 'jsreact',    label: 'JS & React',         badge: '12 topics' },
   { id: 'coding',     label: 'Coding Assessment',  badge: '10 topics' },
-  { id: 'sysdesign',  label: 'System Design',      badge: '6 scenarios' },
+  { id: 'sysdesign',  label: 'System Design',      badge: '7 scenarios' },
   { id: 'behavioral', label: 'Behavioral',         badge: '12 questions' },
   { id: 'quiz',       label: 'Quiz Me',            badge: 'Flash' },
 ];
@@ -23,7 +23,7 @@ export default function App() {
 
   const markDone = (id) => setDoneSections(prev => new Set([...prev, id]));
 
-  const totalTopics = 12 + 10 + 6 + 7;
+  const totalTopics = 12 + 10 + 7 + 7;
   const pct = Math.round((doneSections.size / totalTopics) * 100);
 
   return (

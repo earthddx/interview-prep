@@ -5,6 +5,7 @@ import { SidebarLayout, SidebarSection, SidebarItem } from '../components/Sideba
 
 const TOPICS = [
   { id: 'framework',     label: 'Design Framework' },
+  { id: 'nextjs',        label: 'React/Next.js App Architecture' },
   { id: 'serverless',    label: 'Serverless API Platform' },
   { id: 'microservices', label: 'Microservices Architecture' },
   { id: 'eventdriven',   label: 'Event-Driven System' },
@@ -19,6 +20,156 @@ const AWS_REF = [
 ];
 
 const CONTENT = {
+  nextjs: (
+    <Card>
+      <CardHeader title="Design: Production React/Next.js Application" tag="Your Strongest Area" tagColor="green" />
+      <div className="highlight green"><p><strong>Play to your strength here.</strong> Drive the conversation toward rendering strategy, caching, performance, and security — areas where deep React/Next.js knowledge shines.</p></div>
+      <Accordion title="Rendering Strategy Decision Tree" defaultOpen>
+        <div className="arch-diagram">{`Does the page need user-specific data?
+├── YES → Is real-time data required?
+│         ├── YES → CSR (client-side fetch after hydration)
+│         └── NO  → SSR (getServerSideProps / Server Component)
+└── NO  → Does content change often?
+          ├── YES (minutes/hours) → ISR (revalidate: 60)
+          └── NO  (rarely)       → SSG (build time, fastest TTFB)`}</div>
+        <ul>
+          <li><strong>SSG</strong> — built at deploy time, served from CDN. Best TTFB. Marketing pages, docs.</li>
+          <li><strong>ISR</strong> — regenerates pages in background after revalidate seconds. Product pages, news.</li>
+          <li><strong>SSR</strong> — rendered per request on server. Auth-gated pages, personalized dashboards.</li>
+          <li><strong>CSR</strong> — shell from server, data fetched client-side. Real-time feeds, user-specific widgets.</li>
+        </ul>
+        <div className="highlight">
+          <p><strong>App Router (Next.js 13+):</strong> Server Components are the default — zero JS sent to client. Add <code>'use client'</code> only at the leaf that needs interactivity. This alone can eliminate 60-80% of client bundle size.</p>
+        </div>
+      </Accordion>
+      <Accordion title="High-Level Architecture Diagram">
+        <div className="arch-diagram">{`Browser
+  |
+CloudFront (CDN)
+  ├── /static/* → S3 (CSS, JS chunks, images)
+  └── /* → Next.js on Lambda@Edge / Vercel / ECS
+              |
+              ├── Server Components → direct DB/API calls (no round trip)
+              ├── API Routes (/api/*) → BFF layer
+              │     ├── Auth check (NextAuth / Cognito)
+              │     ├── Rate limiting (upstash/redis)
+              │     └── Downstream microservices / Lambda
+              └── Middleware (Edge) → auth redirect, A/B, geo
+
+Data Layer:
+  ├── Redis (ElastiCache) — session, API response cache
+  ├── DynamoDB / RDS — application data
+  └── CDN cache — static + ISR pages (edge)`}</div>
+      </Accordion>
+      <Accordion title="Caching Strategy (layered)">
+        <ul>
+          <li><strong>CDN (CloudFront):</strong> Cache-Control headers on SSG/ISR pages — served globally with no compute</li>
+          <li><strong>Next.js Data Cache:</strong> <code>fetch(url, {'{ next: { revalidate: 60 } }'})</code> in Server Components — persisted across requests</li>
+          <li><strong>React Query / SWR:</strong> Client-side stale-while-revalidate — instant UI + background refresh</li>
+          <li><strong>Redis (ElastiCache):</strong> Cache expensive DB queries or 3rd party API responses in API routes</li>
+        </ul>
+        <pre><code>{`// Next.js 14 — granular cache control per fetch
+const data = await fetch('/api/products', {
+  next: {
+    revalidate: 300,          // ISR — regenerate after 5 min
+    tags: ['products'],       // cache tag for on-demand invalidation
+  }
+});
+
+// On-demand revalidation (e.g. after CMS publish webhook)
+import { revalidateTag } from 'next/cache';
+revalidateTag('products'); // purges all fetches tagged 'products'`}</code></pre>
+      </Accordion>
+      <Accordion title="Authentication Architecture">
+        <pre><code>{`// NextAuth.js (Auth.js v5) — most common pattern
+// auth.ts
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    CognitoProvider({ clientId, clientSecret, issuer }),
+  ],
+  callbacks: {
+    jwt({ token, account }) {
+      if (account) token.accessToken = account.access_token;
+      return token;
+    },
+    session({ session, token }) {
+      session.accessToken = token.accessToken;
+      return session;
+    },
+  },
+});
+
+// Middleware — protect routes at the Edge (before page renders)
+// middleware.ts
+export default auth((req) => {
+  if (!req.auth && req.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+});
+export const config = { matcher: ['/dashboard/:path*'] };`}</code></pre>
+        <p><strong>Security note:</strong> Validate session on the server for every sensitive API route — never trust client-side auth state alone.</p>
+      </Accordion>
+      <Accordion title="Performance Wins to Mention">
+        <div className="grid-2">
+          <div>
+            <h3>Bundle Size</h3>
+            <ul>
+              <li>Server Components = zero client JS by default</li>
+              <li><code>next/dynamic</code> for heavy client components (rich text editors, charts)</li>
+              <li>Tree-shake icon libs: import <code>{'{ IconName }'}</code> not entire pack</li>
+              <li>Analyze with <code>@next/bundle-analyzer</code></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Core Web Vitals</h3>
+            <ul>
+              <li><strong>LCP:</strong> <code>next/image</code> with <code>priority</code> on hero, preconnect fonts</li>
+              <li><strong>CLS:</strong> Reserve space for images (<code>width</code>/<code>height</code>), avoid dynamic content above fold</li>
+              <li><strong>INP:</strong> Offload heavy work to Web Workers, use <code>useTransition</code> for non-urgent updates</li>
+              <li><strong>TTFB:</strong> ISR/SSG over SSR where possible, edge runtime</li>
+            </ul>
+          </div>
+        </div>
+      </Accordion>
+      <Accordion title="Security Checklist">
+        <ul>
+          <li><strong>CSP headers:</strong> Set via <code>next.config.js</code> headers or middleware — prevent XSS</li>
+          <li><strong>CSRF:</strong> API routes use <code>SameSite=Strict</code> cookies + origin checks</li>
+          <li><strong>Input validation:</strong> Zod on both client (form) and server (API route) — never trust client</li>
+          <li><strong>Secrets:</strong> Never in client bundle — only <code>NEXT_PUBLIC_</code> vars reach the browser</li>
+          <li><strong>Rate limiting:</strong> Upstash Redis rate limiter in middleware or API routes</li>
+          <li><strong>Dependency scanning:</strong> <code>npm audit</code> + Snyk in CI — <code>next</code> updates frequently</li>
+        </ul>
+        <pre><code>{`// next.config.js — security headers
+const securityHeaders = [
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Content-Security-Policy', value: "default-src 'self';" },
+];
+module.exports = {
+  async headers() {
+    return [{ source: '/(.*)', headers: securityHeaders }];
+  },
+};`}</code></pre>
+      </Accordion>
+      <Accordion title="Deployment Options & Tradeoffs">
+        <div className="grid-2">
+          <div>
+            <h3>Vercel (simplest)</h3>
+            <ul><li>Zero-config, auto ISR, Edge Runtime</li><li>Preview deployments per PR</li><li>Best DX, but vendor lock-in</li><li>Use when: fast shipping, startup/team</li></ul>
+          </div>
+          <div>
+            <h3>AWS (enterprise)</h3>
+            <ul><li>ECS Fargate (containerized Next.js server)</li><li>Lambda@Edge for SSR at CDN edge</li><li>OpenNext adapter for serverless deploy</li><li>Use when: existing AWS infra, compliance</li></ul>
+          </div>
+        </div>
+        <div className="highlight orange" style={{ marginTop: 12 }}>
+          <p><strong>INDG context:</strong> They use AWS — position your Next.js experience alongside ECS/Lambda deployment, CloudFront CDN, and Cognito auth. Mention you've shipped or designed full-stack Next.js apps and understand the infra behind them, not just the framework.</p>
+        </div>
+      </Accordion>
+    </Card>
+  ),
   framework: (
     <Card>
       <CardHeader title="System Design Framework (use every time)" tag="Do This First" tagColor="red" />
