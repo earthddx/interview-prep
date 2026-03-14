@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(find d:/Projects/interview-prep/src -type f -name *.jsx -o -name *.js -o -name *.css)"
     ]
   }
 }
