@@ -175,8 +175,8 @@ let baz = 10;`}</CodeBlock>
       </div>
       <Accordion title="`this` Binding Rules" defaultOpen>
         <CodeBlock>{`// 1. Method call — this = the object before the dot
-const obj = { name: 'INDG', greet() { return this.name; } };
-obj.greet(); // 'INDG'
+const obj = { name: 'Acme', greet() { return this.name; } };
+obj.greet(); // 'Acme'
 
 // 2. Regular function — this = undefined (strict) or global
 function show() { console.log(this); } // window or undefined
@@ -870,11 +870,9 @@ export default function JSReact({ onTopicDone, doneSections }) {
               <SidebarItem key={t.id} label={t.label} active={active === t.id} done={doneSections.has(t.id)} onClick={() => setActive(t.id)} />
             ))}
           </SidebarSection>
-          <SidebarSection title="Practice Timer">
-            <Timer defaultMinutes={20} />
-          </SidebarSection>
         </>
       }
+      timer={<Timer defaultMinutes={20} />}
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>JavaScript & React Deep Dive</div>
       <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Your core proficiency — own this section confidently. JS runtime, React internals, full-stack patterns.</div>

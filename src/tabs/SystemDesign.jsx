@@ -167,7 +167,7 @@ module.exports = {
           </div>
         </div>
         <div className="highlight orange" style={{ marginTop: 12 }}>
-          <p><strong>INDG context:</strong> They use AWS — position your Next.js experience alongside ECS/Lambda deployment, CloudFront CDN, and Cognito auth. Mention you've shipped or designed full-stack Next.js apps and understand the infra behind them, not just the framework.</p>
+          <p><strong>Tip:</strong> Position your Next.js experience alongside ECS/Lambda deployment, CloudFront CDN, and Cognito auth. Mention you've shipped or designed full-stack Next.js apps and understand the infra behind them, not just the framework.</p>
         </div>
       </Accordion>
     </Card>
@@ -215,7 +215,7 @@ module.exports = {
             <li>Failure modes & recovery</li>
           </ul>
           <div className="highlight green" style={{ marginTop: 10 }}>
-            <p><strong>INDG Tip:</strong> Always weave in AWS services and DevSecOps security considerations — they explicitly care about this.</p>
+            <p><strong>Tip:</strong> Always weave in AWS services and DevSecOps security considerations — interviewers at cloud-native companies explicitly care about this.</p>
           </div>
         </div>
       </div>
@@ -310,8 +310,8 @@ DB    DB    External API`}</div>
   ),
   microfrontend: (
     <Card>
-      <CardHeader title="Design: Microfrontend Architecture" tag="INDG Lists This Explicitly" tagColor="orange" />
-      <div className="highlight orange"><p><strong>INDG listed "Microfrontend" by name</strong> in the JD — know this well.</p></div>
+      <CardHeader title="Design: Microfrontend Architecture" tag="High Value Topic" tagColor="orange" />
+      <div className="highlight orange"><p><strong>Microfrontend</strong> appears explicitly in many JDs — know this well.</p></div>
       <h3>What Are Microfrontends?</h3>
       <p>Like microservices but for the UI. Each team independently owns and deploys their frontend slice. A shell/host app composes them at runtime.</p>
       <Accordion title="Implementation Approaches" defaultOpen>

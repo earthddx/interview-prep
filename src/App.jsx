@@ -32,7 +32,7 @@ export default function App() {
   return (
     <>
       <header className={styles.header}>
-        <span className={styles.title}>Bloomberg INDG — Interview Prep Dashboard</span>
+        <span className={styles.title}>Interview Prep Dashboard</span>
         <div className={styles.headerRight}>
           <span className={styles.progressLabel}>Overall Prep</span>
           <div className={styles.progressBar}>

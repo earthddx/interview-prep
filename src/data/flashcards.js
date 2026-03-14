@@ -27,7 +27,7 @@ export const flashcardSets = {
     { q: "What is Event Sourcing?", a: "Store state as a sequence of events, not current values. Replay events to rebuild state. Benefits: full audit log, temporal queries, replay for debugging. Often paired with CQRS." },
   ],
   behavioral: [
-    { q: "INDG says 'anticipate potential barriers.' What does this mean?", a: "Proactive risk communication: surface blockers early, not after they delay delivery. 'This dependency has a 3-week lead time — should we de-risk now?' Show you think ahead." },
+    { q: "What does 'anticipate potential barriers' mean in a behavioral context?", a: "Proactive risk communication: surface blockers early, not after they delay delivery. 'This dependency has a 3-week lead time — should we de-risk now?' Show you think ahead." },
     { q: "They want 'empirical evidence through PoCs and tests.' How have you applied this?", a: "Run benchmarks before committing to a framework, build PoCs to validate architectural assumptions, write load tests before launch, use A/B tests to validate UX hypotheses. Favor data over opinions." },
     { q: "How would you describe DevSecOps in a behavioral context?", a: "Security is everyone's responsibility, not just ops. I've implemented: pre-commit hooks for secret detection, SAST in CI, mandatory dependency scanning in PRs, runtime monitoring. Security as a feature, not a checklist." },
     { q: "What question should you ask at the end of behavioral interviews?", a: "'Is there anything from our conversation today that gives you pause about my fit for this role?' Also: 'What does success look like in 90 days?' and 'What's the biggest technical challenge right now?'" },

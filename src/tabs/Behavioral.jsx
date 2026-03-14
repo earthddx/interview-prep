@@ -137,7 +137,7 @@ const CONTENT = {
   ),
   leadership: (
     <Card>
-      <CardHeader title="Leadership & Ownership Questions" tag="INDG Core Values" tagColor="red" />
+      <CardHeader title="Leadership & Ownership Questions" tag="Core Values" tagColor="red" />
       <Accordion title='"Tell me about a time you took ownership of a critical problem."' defaultOpen>
         <div className="highlight"><p><strong>What they're testing:</strong> Initiative, accountability, ability to work independently.</p></div>
         <h3>Answer Structure:</h3>
@@ -149,7 +149,7 @@ const CONTENT = {
           <li>Quantify the impact: uptime restored, SLA met</li>
           <li>What did you put in place to prevent recurrence?</li>
         </ol>
-        <div className="highlight green" style={{ marginTop: 10 }}><p><strong>INDG angle:</strong> Mention you communicated proactively with the dev lead — they specifically call this out in the JD.</p></div>
+        <div className="highlight green" style={{ marginTop: 10 }}><p><strong>Key angle:</strong> Mention you communicated proactively with the dev lead — many JDs specifically call out proactive communication.</p></div>
       </Accordion>
       <Accordion title='"How have you influenced technical decisions without direct authority?"'>
         <ul>
@@ -174,7 +174,7 @@ const CONTENT = {
     <Card>
       <CardHeader title="Collaboration & Communication" tag="Team Fit" tagColor="green" />
       <Accordion title='"How do you communicate blockers to your team lead?"' defaultOpen>
-        <div className="highlight orange"><p><strong>INDG specifically says:</strong> "Communicate with the development lead to raise issues and <strong>anticipate potential barriers</strong>." Emphasize proactive communication.</p></div>
+        <div className="highlight orange"><p><strong>Key expectation:</strong> "Communicate with the development lead to raise issues and <strong>anticipate potential barriers</strong>." Emphasize proactive communication.</p></div>
         <ul>
           <li>Surface blockers early — not after they've already delayed delivery</li>
           <li>Describe your "no surprises" approach: weekly sync, async updates, flagging risks</li>
@@ -264,7 +264,7 @@ const CONTENT = {
   ),
   questions: (
     <Card>
-      <CardHeader title="Smart Questions to Ask INDG" tag="Show Genuine Interest" tagColor="green" />
+      <CardHeader title="Smart Questions to Ask" tag="Show Genuine Interest" tagColor="green" />
       <div className="highlight"><p><strong>Rule:</strong> Ask questions that show you've read the JD and are thinking about how to succeed there.</p></div>
       <h3>About the Role</h3>
       <ul>
@@ -316,7 +316,7 @@ export default function Behavioral({ onTopicDone, doneSections }) {
       }
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>Behavioral Interview Prep</div>
-      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>INDG cares about ownership, initiative, communication, and DevSecOps mindset</div>
+      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Strong candidates demonstrate ownership, initiative, communication, and a DevSecOps mindset</div>
       {CONTENT[active]}
       {!doneSections.has(active) ? (
         <button className="btn btn-primary" onClick={() => onTopicDone(active)}>Mark as Reviewed ✓</button>

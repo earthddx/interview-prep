@@ -1,6 +1,6 @@
 export const quizQuestions = [
   {
-    q: "INDG's JD mentions 'Microfrontend' as a required proficiency. Which tool is most commonly used to implement microfrontends in modern React apps?",
+    q: "'Microfrontend' is a common required proficiency in full-stack JDs. Which tool is most commonly used to implement microfrontends in modern React apps?",
     options: ["React Context API", "Webpack Module Federation", "CSS Modules", "Server-Side Rendering"],
     correct: 1,
     explanation: "Webpack 5's Module Federation is the standard approach for microfrontends, allowing independently deployed apps to share components at runtime.",

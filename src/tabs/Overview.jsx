@@ -8,7 +8,7 @@ const CHECKLIST = [
   'Sketch 2 system design diagrams from memory',
   'Review AWS services: Lambda, SQS, SNS, API GW, DynamoDB',
   'Prepare 3-5 smart questions to ask the interviewers',
-  'Research Bloomberg INDG\'s products / recent news',
+  'Research the company\'s products and recent news',
   'Get good sleep and test your audio/video setup',
 ];
 
@@ -22,7 +22,7 @@ export default function Overview() {
       <div style={{ background: 'linear-gradient(135deg,rgba(88,166,255,.1),rgba(210,168,255,.1))', border: '1px solid rgba(88,166,255,.3)', borderRadius: 12, padding: '16px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-bright)' }}>3 Interviews Coming Up</div>
-          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4 }}>Bloomberg Industrial Group (INDG) — Full-Stack DevSecOps Engineer</div>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4 }}>Full-Stack DevSecOps Engineer</div>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[['#58a6ff','Coding Assessment'],['#3fb950','System Design'],['#ffa657','Behavioral']].map(([color,label]) => (
@@ -51,7 +51,7 @@ export default function Overview() {
       <div className="grid-2">
         {/* Role Snapshot */}
         <Card>
-          <CardHeader title="Role Snapshot" tag="INDG" />
+          <CardHeader title="Role Snapshot" />
           <p>Senior-level full-stack engineer on a <strong>DevSecOps team</strong> building customer-facing web applications. Own architecture decisions, write high-quality code independently.</p>
           <div className="highlight green">
             <p><strong>Key Theme:</strong> They want someone who thinks in systems — cloud-native, resilient, secure, scalable.</p>

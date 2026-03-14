@@ -716,11 +716,9 @@ export default function CodingAssessment({ onTopicDone, doneSections }) {
               <SidebarItem key={t.id} label={t.label} active={active === t.id} done={doneSections.has(t.id)} onClick={() => setActive(t.id)} />
             ))}
           </SidebarSection>
-          <SidebarSection title="Practice Timer">
-            <Timer defaultMinutes={30} />
-          </SidebarSection>
         </>
       }
+      timer={<Timer defaultMinutes={30} />}
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>Coding Assessment Prep</div>
       <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Focus: data structures, algorithms, and clean code communication</div>
