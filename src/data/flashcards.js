@@ -1,0 +1,41 @@
+export const flashcardSets = {
+  all: [
+    { q: "What is the CAP theorem?", a: "A distributed system can guarantee at most 2 of 3: Consistency, Availability, Partition tolerance. In practice P is unavoidable — choose CP or AP." },
+    { q: "What's the difference between SQS and SNS?", a: "SQS is a message queue — one consumer per message (pull-based, task queues). SNS is pub/sub — one message to many subscribers (push-based, fan-out). Use both: SNS fans out to multiple SQS queues." },
+    { q: "Explain blue/green vs canary deployments.", a: "Blue/Green: Two environments, flip traffic instantly — fastest rollback. Canary: Gradually route traffic (5%→25%→100%) — safer for catching issues at scale." },
+    { q: "What is an idempotent operation?", a: "An operation that produces the same result no matter how many times it's executed. Critical in event-driven systems where messages can be delivered more than once." },
+    { q: "What's the difference between authentication and authorization?", a: "Authentication: Who are you? (verifying identity — login, JWT, OAuth). Authorization: What can you do? (permissions — IAM roles, RBAC). AuthN comes before AuthZ." },
+    { q: "What is eventual consistency?", a: "Updates propagate to all nodes, but not instantly — reads may return stale data temporarily. DynamoDB and S3 use this. Tradeoff: higher availability + lower latency vs always-correct reads." },
+    { q: "What is the Saga pattern?", a: "Manages distributed transactions across microservices. Chains local transactions; on failure, runs compensating transactions. Two styles: Choreography (event-driven) and Orchestration (central coordinator)." },
+    { q: "What is a circuit breaker pattern?", a: "Prevents cascading failures. States: Closed (normal), Open (fail fast — don't call downstream), Half-Open (test if recovered). Improves resilience." },
+    { q: "Horizontal vs vertical scaling?", a: "Vertical: Bigger machine — has limits, creates SPOF. Horizontal: More machines — resilient, theoretically unlimited. Cloud-native apps should favor horizontal + stateless services." },
+    { q: "What is Infrastructure as Code (IaC)?", a: "Defining infrastructure through code files. Tools: Terraform (provider-agnostic), AWS CDK (TypeScript→CloudFormation), AWS SAM (serverless). Benefits: version-controlled, repeatable, reviewable." },
+    { q: "What is CQRS?", a: "Command Query Responsibility Segregation. Separate read (Query) and write (Command) models. Writes go to command model, reads from a read-optimized model. Great for high-read workloads." },
+    { q: "What does shift-left security mean?", a: "Integrating security earlier in the SDLC — in development and CI/CD — rather than at the end. Includes: pre-commit secret detection, SAST in CI, dependency scanning. Core DevSecOps principle." },
+  ],
+  aws: [
+    { q: "When would you use DynamoDB vs RDS?", a: "DynamoDB: flexible schema, key-value/document, single-digit ms reads, auto-scaling, serverless. RDS: relational, ACID, complex queries/joins. Choose based on query patterns." },
+    { q: "What is AWS Lambda's cold start problem?", a: "When Lambda hasn't been invoked recently, it must initialize the runtime (100-1000ms). Solutions: Provisioned Concurrency, minimize package size, lightweight runtimes (Node/Python over Java)." },
+    { q: "SQS Standard vs FIFO?", a: "Standard: Best-effort ordering, at-least-once delivery, unlimited throughput. FIFO: Exactly-once, strict ordering, 300-3000 TPS limit. Use FIFO for financial transactions, Standard for max throughput." },
+    { q: "What is AWS EventBridge?", a: "Serverless event bus that routes events between AWS services, custom apps, and SaaS. Supports content-based filtering rules, schema registry, cross-account routing." },
+    { q: "CloudFormation vs CDK?", a: "CloudFormation: JSON/YAML templates, declarative. CDK: Write infrastructure in TypeScript/Python that compiles to CloudFormation — gives you loops, conditionals, abstractions, IDE autocomplete." },
+  ],
+  arch: [
+    { q: "What is Module Federation in microfrontends?", a: "Webpack 5 feature allowing independently deployed apps to share code at runtime. A 'host' loads 'remote' modules dynamically. Teams deploy independently. Key configs: exposes, remotes, shared." },
+    { q: "What is the Strangler Fig pattern?", a: "Incrementally migrate a monolith to microservices. New features go into new services, old functionality replaced gradually. Use API Gateway to route to old vs new. Avoids big-bang rewrite risk." },
+    { q: "What is an API Gateway pattern?", a: "Single entry point handling: routing, authentication, rate limiting, SSL termination, request transformation. Decouples clients from service internals. Consider BFF (Backend for Frontend) per client." },
+    { q: "What is Event Sourcing?", a: "Store state as a sequence of events, not current values. Replay events to rebuild state. Benefits: full audit log, temporal queries, replay for debugging. Often paired with CQRS." },
+  ],
+  behavioral: [
+    { q: "INDG says 'anticipate potential barriers.' What does this mean?", a: "Proactive risk communication: surface blockers early, not after they delay delivery. 'This dependency has a 3-week lead time — should we de-risk now?' Show you think ahead." },
+    { q: "They want 'empirical evidence through PoCs and tests.' How have you applied this?", a: "Run benchmarks before committing to a framework, build PoCs to validate architectural assumptions, write load tests before launch, use A/B tests to validate UX hypotheses. Favor data over opinions." },
+    { q: "How would you describe DevSecOps in a behavioral context?", a: "Security is everyone's responsibility, not just ops. I've implemented: pre-commit hooks for secret detection, SAST in CI, mandatory dependency scanning in PRs, runtime monitoring. Security as a feature, not a checklist." },
+    { q: "What question should you ask at the end of behavioral interviews?", a: "'Is there anything from our conversation today that gives you pause about my fit for this role?' Also: 'What does success look like in 90 days?' and 'What's the biggest technical challenge right now?'" },
+  ],
+  coding: [
+    { q: "Time complexity of a HashMap lookup?", a: "O(1) average — hash function maps key to bucket directly. O(n) worst case with all hash collisions (rare). Space: O(n). This is why 'use a hashmap' converts O(n²) brute force to O(n) solutions." },
+    { q: "BFS vs DFS — when to use each?", a: "BFS (queue): Shortest path in unweighted graph, level-order traversal, nearest neighbor. DFS (stack/recursion): Path existence, tree height, topological sort, cycle detection." },
+    { q: "Memoization vs tabulation in DP?", a: "Memoization (top-down): recursive, cache results, only computes needed subproblems. Tabulation (bottom-up): iterative, fills table from base cases. Tabulation avoids call stack overhead; usually faster." },
+    { q: "Promise.all vs Promise.allSettled?", a: "Promise.all: Resolves when ALL resolve; rejects immediately on ANY rejection (fail-fast). Promise.allSettled: Waits for ALL to settle. Returns [{status, value/reason}]. Use allSettled for partial failure handling." },
+  ],
+};

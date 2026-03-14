@@ -1,0 +1,59 @@
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.title { font-size: 17px; color: var(--text-bright); font-weight: 600; }
+
+.headerRight { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.progressLabel { font-size: 12px; color: var(--text-dim); }
+
+.progressBar { width: 110px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+
+.progressFill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.4s; }
+
+.badge { font-size: 12px; color: var(--text-dim); background: var(--surface2); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); }
+
+.nav {
+  display: flex;
+  gap: 2px;
+  padding: 14px 24px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 53px;
+  z-index: 99;
+  overflow-x: auto;
+}
+
+.tabBtn {
+  padding: 9px 18px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tabBtn:hover { color: var(--text); background: var(--surface2); }
+.tabBtn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tabBadge { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1px 7px; font-size: 11px; }
+.activeBadge { background: var(--accent); border-color: var(--accent); color: var(--bg); }

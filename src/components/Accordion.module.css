@@ -1,0 +1,19 @@
+.accordion {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.header {
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  user-select: none;
+}
+.header:hover { background: #2d333b; }
+.title { font-size: 14px; font-weight: 500; color: var(--text-bright); }
+.arrow { color: var(--text-dim); transition: transform 0.2s; font-size: 12px; }
+.body { padding: 16px; background: var(--surface); border-top: 1px solid var(--border); }
