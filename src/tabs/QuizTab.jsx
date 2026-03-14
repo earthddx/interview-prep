@@ -8,6 +8,7 @@ const SETS = [
   { key: 'arch',     label: 'Architecture' },
   { key: 'behavioral', label: 'Behavioral' },
   { key: 'coding',   label: 'Coding Concepts' },
+  { key: 'jsreact',  label: 'JS & React' },
 ];
 
 function Flashcards() {
