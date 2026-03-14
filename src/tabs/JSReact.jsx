@@ -3,6 +3,7 @@ import Accordion from '../components/Accordion';
 import { Card, CardHeader } from '../components/Card';
 import { SidebarLayout, SidebarSection, SidebarItem } from '../components/SidebarLayout';
 import Timer from '../components/Timer';
+import CodeBlock from '../components/CodeBlock';
 
 const TOPICS = [
   { id: 'eventloop',    label: 'Event Loop & Concurrency' },
@@ -33,7 +34,7 @@ const CONTENT = {
   fn()          → Promise.then()       → setTimeout()
   ↓                ↓ (runs BEFORE       ↓ (runs AFTER
   returns          next macrotask)      microtasks drain)`}</div>
-        <pre><code>{`console.log('1');          // sync → Call Stack
+        <CodeBlock>{`console.log('1');          // sync → Call Stack
 
 setTimeout(() => {
   console.log('4');        // macrotask → runs last
@@ -43,23 +44,23 @@ Promise.resolve()
   .then(() => console.log('3')); // microtask → runs before macrotask
 
 console.log('2');          // sync
-// Output: 1, 2, 3, 4`}</code></pre>
+// Output: 1, 2, 3, 4`}</CodeBlock>
         <p><strong>Rule:</strong> All microtasks drain completely before the next macrotask picks up. This is why <code>Promise.then</code> always runs before <code>setTimeout(fn, 0)</code>.</p>
       </Accordion>
       <Accordion title="async/await under the hood">
         <p><code>async/await</code> is syntax sugar over Promises. Every <code>await</code> suspends the function and schedules resumption as a microtask.</p>
-        <pre><code>{`async function run() {
+        <CodeBlock>{`async function run() {
   console.log('A');
   await Promise.resolve(); // suspends here → microtask
   console.log('C');        // resumes in microtask queue
 }
 run();
 console.log('B');
-// Output: A, B, C`}</code></pre>
+// Output: A, B, C`}</CodeBlock>
       </Accordion>
       <Accordion title="Worker Threads & CPU-Bound Work">
         <p>Node.js has Worker Threads for CPU-intensive tasks (image processing, crypto). For I/O, always prefer async — don't block the event loop.</p>
-        <pre><code>{`// BAD — blocks event loop for all other requests
+        <CodeBlock>{`// BAD — blocks event loop for all other requests
 const result = crypto.scryptSync(password, salt, 64);
 
 // GOOD — async variant releases event loop
@@ -67,7 +68,7 @@ const result = await new Promise((res, rej) =>
   crypto.scrypt(password, salt, 64, (err, key) =>
     err ? rej(err) : res(key)
   )
-);`}</code></pre>
+);`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -79,7 +80,7 @@ const result = await new Promise((res, rej) =>
         <p><strong>Closure:</strong> A function that retains access to its outer scope even after the outer function has returned. The foundation of modules, memoization, and private state in JS.</p>
       </div>
       <Accordion title="Closure in Practice" defaultOpen>
-        <pre><code>{`// Module pattern — private state via closure
+        <CodeBlock>{`// Module pattern — private state via closure
 function createCounter(initial = 0) {
   let count = initial;           // private — not accessible outside
   return {
@@ -90,10 +91,10 @@ function createCounter(initial = 0) {
 }
 const c = createCounter(10);
 c.increment(); // 11
-console.log(c.count); // undefined — truly private`}</code></pre>
+console.log(c.count); // undefined — truly private`}</CodeBlock>
       </Accordion>
       <Accordion title="Classic Closure Gotcha (var in loops)">
-        <pre><code>{`// WRONG — all callbacks share the same 'i' via closure
+        <CodeBlock>{`// WRONG — all callbacks share the same 'i' via closure
 for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log(i), 0); // logs 3, 3, 3
 }
@@ -106,11 +107,11 @@ for (let i = 0; i < 3; i++) {
 // FIX 2 — IIFE to capture value
 for (var i = 0; i < 3; i++) {
   ((j) => setTimeout(() => console.log(j), 0))(i);
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Debounce & Throttle (closure-powered)">
         <p>Both patterns use closures to persist state (timer ID, last call time) across invocations without exposing it.</p>
-        <pre><code>{`// DEBOUNCE — waits until calls STOP for 'delay' ms, then fires once
+        <CodeBlock>{`// DEBOUNCE — waits until calls STOP for 'delay' ms, then fires once
 // Use: search input, window resize handler, form auto-save
 function debounce(fn, delay) {
   let timerId;                        // closed over — persists between calls
@@ -145,7 +146,7 @@ const handleScroll = throttle(() => {
 
 // KEY DIFFERENCE:
 // Debounce: delays until quiet  → good for "final value" (search query)
-// Throttle: limits frequency    → good for "continuous stream" (scroll position)`}</code></pre>
+// Throttle: limits frequency    → good for "continuous stream" (scroll position)`}</CodeBlock>
       </Accordion>
       <Accordion title="Hoisting Rules">
         <ul>
@@ -154,14 +155,14 @@ const handleScroll = throttle(() => {
           <li><strong>Function declarations</strong> — fully hoisted (callable before definition)</li>
           <li><strong>Function expressions / arrow functions</strong> — not hoisted</li>
         </ul>
-        <pre><code>{`console.log(foo()); // works — declaration hoisted
+        <CodeBlock>{`console.log(foo()); // works — declaration hoisted
 function foo() { return 42; }
 
 console.log(bar); // undefined — var hoisted, not initialized
 var bar = 10;
 
 console.log(baz); // ReferenceError — TDZ
-let baz = 10;`}</code></pre>
+let baz = 10;`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -173,7 +174,7 @@ let baz = 10;`}</code></pre>
         <p><strong>Remember:</strong> <code>this</code> is determined by <em>how a function is called</em>, not where it's defined — except for arrow functions, which capture <code>this</code> lexically.</p>
       </div>
       <Accordion title="`this` Binding Rules" defaultOpen>
-        <pre><code>{`// 1. Method call — this = the object before the dot
+        <CodeBlock>{`// 1. Method call — this = the object before the dot
 const obj = { name: 'INDG', greet() { return this.name; } };
 obj.greet(); // 'INDG'
 
@@ -191,10 +192,10 @@ class Timer {
 // 4. Explicit binding
 const greet = obj.greet;
 greet.call({ name: 'Bob' }); // 'Bob'
-greet.bind({ name: 'Alice' })(); // 'Alice'`}</code></pre>
+greet.bind({ name: 'Alice' })(); // 'Alice'`}</CodeBlock>
       </Accordion>
       <Accordion title="Prototype Chain">
-        <pre><code>{`// Every object has a [[Prototype]] link
+        <CodeBlock>{`// Every object has a [[Prototype]] link
 const animal = { breathe() { return 'breathing'; } };
 const dog = Object.create(animal); // dog.__proto__ === animal
 dog.bark = () => 'woof';
@@ -205,17 +206,17 @@ dog.breathe(); // found up prototype chain
 // Class syntax is syntactic sugar over prototypes
 class Animal { breathe() { return 'breathing'; } }
 class Dog extends Animal { bark() { return 'woof'; } }
-// Dog.prototype.__proto__ === Animal.prototype`}</code></pre>
+// Dog.prototype.__proto__ === Animal.prototype`}</CodeBlock>
       </Accordion>
       <Accordion title="Interview Gotcha: new keyword">
-        <pre><code>{`// What 'new' does internally:
+        <CodeBlock>{`// What 'new' does internally:
 function MyClass(val) {
   // 1. Creates empty object with MyClass.prototype as __proto__
   // 2. Sets 'this' to that object
   this.val = val;
   // 3. Returns 'this' implicitly
 }
-// If constructor returns a non-primitive object, that object is returned instead`}</code></pre>
+// If constructor returns a non-primitive object, that object is returned instead`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -224,7 +225,7 @@ function MyClass(val) {
     <Card>
       <CardHeader title="ES6+ Must-Know Features" tag="Full-Stack JS" tagColor="green" />
       <Accordion title="Destructuring, Spread & Rest" defaultOpen>
-        <pre><code>{`// Object destructuring with rename + default
+        <CodeBlock>{`// Object destructuring with rename + default
 const { name: userName = 'anonymous', role = 'user' } = user;
 
 // Array destructuring
@@ -235,10 +236,10 @@ function sum(...nums) { return nums.reduce((a, b) => a + b, 0); }
 
 // Spread to clone/merge without mutation
 const newState = { ...state, count: state.count + 1 };
-const combined = [...arr1, ...arr2];`}</code></pre>
+const combined = [...arr1, ...arr2];`}</CodeBlock>
       </Accordion>
       <Accordion title="Optional Chaining & Nullish Coalescing">
-        <pre><code>{`// Optional chaining (?.) — short-circuits on null/undefined
+        <CodeBlock>{`// Optional chaining (?.) — short-circuits on null/undefined
 const city = user?.address?.city;          // no TypeError
 const fn = obj?.method?.();               // safe method call
 const el = arr?.[0];                       // safe array access
@@ -248,10 +249,10 @@ const name = user.name ?? 'Anonymous';    // '' is NOT nullish
 const port = process.env.PORT ?? 3000;
 
 // vs logical OR (||) — falls back on ANY falsy
-const port2 = process.env.PORT || 3000;  // 0 would use 3000!`}</code></pre>
+const port2 = process.env.PORT || 3000;  // 0 would use 3000!`}</CodeBlock>
       </Accordion>
       <Accordion title="Generators & Iterators">
-        <pre><code>{`// Generator — function that yields values lazily
+        <CodeBlock>{`// Generator — function that yields values lazily
 function* range(start, end) {
   for (let i = start; i <= end; i++) yield i;
 }
@@ -264,10 +265,10 @@ function* paginate(fetchPage) {
     const { items, nextCursor } = yield fetchPage(cursor);
     cursor = nextCursor;
   } while (cursor);
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="WeakMap & WeakRef — Memory-Aware Patterns">
-        <pre><code>{`// WeakMap — keys are weakly referenced (GC can collect them)
+        <CodeBlock>{`// WeakMap — keys are weakly referenced (GC can collect them)
 const cache = new WeakMap();
 function process(obj) {
   if (cache.has(obj)) return cache.get(obj);
@@ -278,7 +279,7 @@ function process(obj) {
 
 // WeakRef — hold reference without preventing GC
 const ref = new WeakRef(largeObject);
-const obj = ref.deref(); // may be undefined if GC'd`}</code></pre>
+const obj = ref.deref(); // may be undefined if GC'd`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -312,7 +313,7 @@ Commit Phase (synchronous, mutates real DOM)
           <li>Context value it consumes changes</li>
           <li>A hook it uses returns a new value</li>
         </ul>
-        <pre><code>{`// useLayoutEffect vs useEffect
+        <CodeBlock>{`// useLayoutEffect vs useEffect
 // useLayoutEffect fires synchronously AFTER DOM mutation but
 // BEFORE browser paint — use for measuring DOM, avoiding flicker
 useLayoutEffect(() => {
@@ -321,7 +322,7 @@ useLayoutEffect(() => {
 }, []);
 
 // useEffect fires asynchronously after paint — use for
-// subscriptions, data fetching, timers`}</code></pre>
+// subscriptions, data fetching, timers`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -330,7 +331,7 @@ useLayoutEffect(() => {
     <Card>
       <CardHeader title="React Hooks Deep Dive" tag="React Core" tagColor="red" />
       <Accordion title="useState & useReducer — When to Use Each" defaultOpen>
-        <pre><code>{`// useState — simple independent values
+        <CodeBlock>{`// useState — simple independent values
 const [count, setCount] = useState(0);
 
 // useReducer — complex state with multiple sub-values or
@@ -342,10 +343,10 @@ const reducer = (state, action) => {
     default: throw new Error('Unknown action');
   }
 };
-const [state, dispatch] = useReducer(reducer, { count: 0, error: null });`}</code></pre>
+const [state, dispatch] = useReducer(reducer, { count: 0, error: null });`}</CodeBlock>
       </Accordion>
       <Accordion title="useCallback & useMemo — Reference Stability">
-        <pre><code>{`// useMemo — memoize EXPENSIVE computed value
+        <CodeBlock>{`// useMemo — memoize EXPENSIVE computed value
 const sortedList = useMemo(
   () => [...items].sort((a, b) => a.price - b.price),
   [items]
@@ -359,10 +360,10 @@ const handleSubmit = useCallback((e) => {
 }, [formData, submit]); // only recreated when deps change
 
 // Without useCallback, every render creates a new function ref
-// → breaks React.memo on child component`}</code></pre>
+// → breaks React.memo on child component`}</CodeBlock>
       </Accordion>
       <Accordion title="useRef — Beyond DOM Access">
-        <pre><code>{`// 1. DOM access
+        <CodeBlock>{`// 1. DOM access
 const inputRef = useRef(null);
 inputRef.current.focus();
 
@@ -378,10 +379,10 @@ function usePrevious(value) {
   const ref = useRef();
   useEffect(() => { ref.current = value; });
   return ref.current; // returns value from LAST render
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Custom Hooks — Reusable Stateful Logic">
-        <pre><code>{`// Extract and share logic, not JSX
+        <CodeBlock>{`// Extract and share logic, not JSX
 function useFetch(url) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -399,7 +400,7 @@ function useFetch(url) {
   }, [url]);
 
   return { data, loading, error };
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -411,7 +412,7 @@ function useFetch(url) {
         <p><strong>Decision Guide:</strong> Context for low-frequency global data (theme, auth). Zustand/Redux for high-frequency or complex shared state. Server state (React Query / SWR) is a different problem — don't put API data in Redux.</p>
       </div>
       <Accordion title="Context API — Right vs Wrong Use" defaultOpen>
-        <pre><code>{`// WRONG — Context re-renders ALL consumers on every value change
+        <CodeBlock>{`// WRONG — Context re-renders ALL consumers on every value change
 // Don't put frequently-changing state (cursor position) in context
 
 // PATTERN — split context to minimize re-renders
@@ -431,10 +432,10 @@ function Provider({ children }) {
       </StoreContext.Provider>
     </DispatchContext.Provider>
   );
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Zustand — Lightweight Production State">
-        <pre><code>{`import { create } from 'zustand';
+        <CodeBlock>{`import { create } from 'zustand';
 
 const useStore = create((set, get) => ({
   count: 0,
@@ -452,10 +453,10 @@ function Counter() {
   const count = useStore(state => state.count);
   const increment = useStore(state => state.increment);
   return <button onClick={increment}>{count}</button>;
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Server State — React Query">
-        <pre><code>{`// Server state (fetched data) has different concerns:
+        <CodeBlock>{`// Server state (fetched data) has different concerns:
 // loading, caching, stale-while-revalidate, background refresh
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -474,7 +475,7 @@ function useCreateUser() {
     mutationFn: api.createUser,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -483,7 +484,7 @@ function useCreateUser() {
     <Card>
       <CardHeader title="React Performance Optimization" tag="Senior-Level" tagColor="orange" />
       <Accordion title="React.memo — Prevent Unnecessary Re-renders" defaultOpen>
-        <pre><code>{`// React.memo — shallow prop comparison bailout
+        <CodeBlock>{`// React.memo — shallow prop comparison bailout
 const UserCard = React.memo(function UserCard({ user, onDelete }) {
   // Only re-renders if user or onDelete reference changes
   return <div>{user.name} <button onClick={() => onDelete(user.id)}>X</button></div>;
@@ -493,10 +494,10 @@ const UserCard = React.memo(function UserCard({ user, onDelete }) {
 // Fix: useCallback in parent
 const handleDelete = useCallback((id) => {
   setUsers(prev => prev.filter(u => u.id !== id));
-}, []); // stable reference`}</code></pre>
+}, []); // stable reference`}</CodeBlock>
       </Accordion>
       <Accordion title="Code Splitting & Lazy Loading">
-        <pre><code>{`import { lazy, Suspense } from 'react';
+        <CodeBlock>{`import { lazy, Suspense } from 'react';
 
 // Lazy load heavy components — split into separate chunks
 const Dashboard = lazy(() => import('./Dashboard'));
@@ -510,10 +511,10 @@ function App() {
     </Suspense>
   );
 }
-// Dashboard.js is only downloaded when the tab is activated`}</code></pre>
+// Dashboard.js is only downloaded when the tab is activated`}</CodeBlock>
       </Accordion>
       <Accordion title="Virtualization for Long Lists">
-        <pre><code>{`// Rendering 10,000 DOM nodes is slow
+        <CodeBlock>{`// Rendering 10,000 DOM nodes is slow
 // Virtualization renders only visible rows
 
 import { FixedSizeList as List } from 'react-window';
@@ -528,7 +529,7 @@ function VirtualList({ items }) {
     </List>
   );
 }
-// Only ~12 DOM nodes rendered at any time regardless of list size`}</code></pre>
+// Only ~12 DOM nodes rendered at any time regardless of list size`}</CodeBlock>
       </Accordion>
       <Accordion title="Bundle Optimization Checklist">
         <ul>
@@ -547,7 +548,7 @@ function VirtualList({ items }) {
     <Card>
       <CardHeader title="React Design Patterns" tag="Senior-Level" tagColor="orange" />
       <Accordion title="Compound Components — Flexible APIs" defaultOpen>
-        <pre><code>{`// Flexible: let consumers compose internals
+        <CodeBlock>{`// Flexible: let consumers compose internals
 // Used by Radix UI, Headless UI, React Select
 
 const TabContext = createContext(null);
@@ -578,10 +579,10 @@ Tabs.Content = function TabContent({ value, children }) {
   </Tabs.List>
   <Tabs.Content value="a">Content A</Tabs.Content>
   <Tabs.Content value="b">Content B</Tabs.Content>
-</Tabs>`}</code></pre>
+</Tabs>`}</CodeBlock>
       </Accordion>
       <Accordion title="Render Props & Higher-Order Components">
-        <pre><code>{`// Render props — share stateful logic via JSX children
+        <CodeBlock>{`// Render props — share stateful logic via JSX children
 function MouseTracker({ children }) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   return (
@@ -599,10 +600,10 @@ function withAuth(WrappedComponent) {
     return <WrappedComponent {...props} user={user} />;
   };
 }
-// Modern preference: custom hooks > HOCs for logic reuse`}</code></pre>
+// Modern preference: custom hooks > HOCs for logic reuse`}</CodeBlock>
       </Accordion>
       <Accordion title="Controlled vs Uncontrolled Components">
-        <pre><code>{`// Controlled — React owns state, single source of truth
+        <CodeBlock>{`// Controlled — React owns state, single source of truth
 <input value={value} onChange={e => setValue(e.target.value)} />
 
 // Uncontrolled — DOM owns state, read with ref
@@ -611,7 +612,7 @@ const inputRef = useRef();
 // inputRef.current.value on submit
 
 // When to use uncontrolled: file inputs, performance-critical forms,
-// integrating with non-React code`}</code></pre>
+// integrating with non-React code`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -623,7 +624,7 @@ const inputRef = useRef();
         <p><strong>Concurrent React:</strong> Rendering is now interruptible. React can pause, resume, or abandon a render. This enables transitions, Suspense for data, and streaming SSR.</p>
       </div>
       <Accordion title="useTransition & useDeferredValue" defaultOpen>
-        <pre><code>{`// useTransition — mark state update as non-urgent
+        <CodeBlock>{`// useTransition — mark state update as non-urgent
 // React keeps old UI interactive while preparing new UI
 function SearchPage() {
   const [query, setQuery] = useState('');
@@ -649,10 +650,10 @@ function List({ query }) {
   const deferredQuery = useDeferredValue(query); // lags behind query
   const items = useMemo(() => filter(data, deferredQuery), [deferredQuery]);
   return <ul>{items.map(i => <li key={i.id}>{i.name}</li>)}</ul>;
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Suspense for Data Fetching">
-        <pre><code>{`// React 18 — Suspense + data libraries (Relay, Next.js, React Query experimental)
+        <CodeBlock>{`// React 18 — Suspense + data libraries (Relay, Next.js, React Query experimental)
 // Component "suspends" by throwing a Promise
 function UserProfile({ userId }) {
   // In React Query v5 with suspense: true
@@ -671,7 +672,7 @@ function UserProfile({ userId }) {
   <Suspense fallback={<Spinner />}>
     <UserProfile userId={id} />
   </Suspense>
-</ErrorBoundary>`}</code></pre>
+</ErrorBoundary>`}</CodeBlock>
       </Accordion>
       <Accordion title="React 19 — New Hooks & Server Actions">
         <ul>
@@ -681,7 +682,7 @@ function UserProfile({ userId }) {
           <li><strong>Server Components</strong> — render on server, zero client JS, direct DB access</li>
           <li><strong>Server Actions</strong> — <code>async function</code> with <code>"use server"</code> — called from client, runs on server</li>
         </ul>
-        <pre><code>{`// useOptimistic — show success before server confirms
+        <CodeBlock>{`// useOptimistic — show success before server confirms
 function LikeButton({ post }) {
   const [optimisticLikes, addOptimisticLike] = useOptimistic(
     post.likes,
@@ -694,7 +695,7 @@ function LikeButton({ post }) {
     // on error: React auto-reverts to post.likes
   }
   return <button onClick={handleLike}>♥ {optimisticLikes}</button>;
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -706,7 +707,7 @@ function LikeButton({ post }) {
         <p><strong>Company context:</strong> This team uses JS for both frontend and backend. Node.js + Express/Fastify for APIs, potentially Lambda (Node runtime) for serverless. Know these cold.</p>
       </div>
       <Accordion title="Express Middleware Pattern" defaultOpen>
-        <pre><code>{`// Middleware = (req, res, next) => void
+        <CodeBlock>{`// Middleware = (req, res, next) => void
 // Chain builds up like onion layers
 
 app.use(express.json());
@@ -728,10 +729,10 @@ app.get('/users/:id', async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'Not found' });
     res.json(user);
   } catch (err) { next(err); } // pass to error middleware
-});`}</code></pre>
+});`}</CodeBlock>
       </Accordion>
       <Accordion title="Streams for Large Data">
-        <pre><code>{`// DON'T load large files into memory
+        <CodeBlock>{`// DON'T load large files into memory
 app.get('/export', async (req, res) => {
   // BAD
   const data = await db.getAllRecords(); // 1M rows → heap overflow
@@ -741,10 +742,10 @@ app.get('/export', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const dbStream = db.getAllRecordsStream();
   dbStream.pipe(JSONStream.stringify()).pipe(res);
-});`}</code></pre>
+});`}</CodeBlock>
       </Accordion>
       <Accordion title="Cluster & PM2 for Multi-Core">
-        <pre><code>{`// Node.js is single-threaded — one process per CPU core by default
+        <CodeBlock>{`// Node.js is single-threaded — one process per CPU core by default
 // cluster module forks worker processes to use all cores
 
 import cluster from 'cluster';
@@ -758,7 +759,7 @@ if (cluster.isPrimary) {
 }
 
 // In production: PM2 handles this automatically
-// pm2 start server.js -i max  → one process per CPU core`}</code></pre>
+// pm2 start server.js -i max  → one process per CPU core`}</CodeBlock>
       </Accordion>
       <Accordion title="Security Essentials (Node/Express)">
         <ul>
@@ -780,7 +781,7 @@ if (cluster.isPrimary) {
         <p><strong>Why it matters:</strong> Type-safe APIs between frontend and backend, better IDE support, catch errors at compile time. Share types across FE and BE in a monorepo.</p>
       </div>
       <Accordion title="Types You Must Know Cold" defaultOpen>
-        <pre><code>{`// Union & intersection types
+        <CodeBlock>{`// Union & intersection types
 type Status = 'loading' | 'success' | 'error';
 type AdminUser = User & { adminLevel: number };
 
@@ -796,10 +797,10 @@ type PublicUser = Omit<User, 'password'>;   // exclude fields
 type UserRecord = Record<string, User>;     // index signature
 
 // Template literal types
-type EventName = \`on\${Capitalize<string>}\`; // onSubmit, onChange...`}</code></pre>
+type EventName = \`on\${Capitalize<string>}\`; // onSubmit, onChange...`}</CodeBlock>
       </Accordion>
       <Accordion title="Discriminated Unions — Type-Safe State">
-        <pre><code>{`// Model all states explicitly — no undefined behavior
+        <CodeBlock>{`// Model all states explicitly — no undefined behavior
 type FetchState<T> =
   | { status: 'idle' }
   | { status: 'loading' }
@@ -814,10 +815,10 @@ function render(state: FetchState<User>) {
     return state.error.message; // TypeScript knows error exists
   }
   return null;
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
       <Accordion title="Sharing Types Between FE & BE">
-        <pre><code>{`// In a monorepo (Turborepo/Nx):
+        <CodeBlock>{`// In a monorepo (Turborepo/Nx):
 // packages/shared-types/src/api.ts
 
 export interface CreateUserRequest {
@@ -841,7 +842,7 @@ app.post('/users', async (req: Request<{}, {}, CreateUserRequest>, res) => {
 
 // Frontend
 const user = await api.post<UserResponse>('/users', data);
-// Same types — breaking API change caught at compile time`}</code></pre>
+// Same types — breaking API change caught at compile time`}</CodeBlock>
       </Accordion>
     </Card>
   ),

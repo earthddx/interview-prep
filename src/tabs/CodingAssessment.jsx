@@ -3,10 +3,12 @@ import Accordion from '../components/Accordion';
 import { Card, CardHeader } from '../components/Card';
 import { SidebarLayout, SidebarSection, SidebarItem } from '../components/SidebarLayout';
 import Timer from '../components/Timer';
+import CodeBlock from '../components/CodeBlock';
 
 const TOPICS = [
   { id: 'arrays',     label: 'Arrays & Hashmaps' },
   { id: 'strings',    label: 'Strings' },
+  { id: 'linkedlist', label: 'Linked Lists' },
   { id: 'trees',      label: 'Trees & Graphs' },
   { id: 'dp',         label: 'Dynamic Programming' },
   { id: 'async',      label: 'Async / Promises' },
@@ -24,7 +26,7 @@ const CONTENT = {
       <div className="highlight"><p><strong>Core Insight:</strong> Most interview problems reduce to "use a hashmap to trade space for time." When you see O(n²) brute force, think hashmap → O(n).</p></div>
       <Accordion title="Two Sum Pattern (most common)" defaultOpen>
         <p>Store complement in a map as you iterate. Classic O(n) solution:</p>
-        <pre><code>{`function twoSum(nums, target) {
+        <CodeBlock>{`function twoSum(nums, target) {
   const map = new Map(); // value -> index
   for (let i = 0; i < nums.length; i++) {
     const complement = target - nums[i];
@@ -35,10 +37,10 @@ const CONTENT = {
   }
   return [];
 }
-// Time: O(n)  Space: O(n)`}</code></pre>
+// Time: O(n)  Space: O(n)`}</CodeBlock>
       </Accordion>
       <Accordion title="Sliding Window Pattern">
-        <pre><code>{`// Longest substring without repeating chars
+        <CodeBlock>{`// Longest substring without repeating chars
 function lengthOfLongestSubstring(s) {
   const seen = new Map();
   let left = 0, maxLen = 0;
@@ -51,7 +53,7 @@ function lengthOfLongestSubstring(s) {
   }
   return maxLen;
 }
-// Time: O(n)  Space: O(charset)`}</code></pre>
+// Time: O(n)  Space: O(charset)`}</CodeBlock>
       </Accordion>
       <Accordion title="What to Say When You Get a Problem">
         <ol>
@@ -76,7 +78,7 @@ function lengthOfLongestSubstring(s) {
           <li><strong>Anagram:</strong> sort both OR frequency count</li>
           <li><strong>Reversal:</strong> split, reverse, join — or two-pointer</li>
         </ul>
-        <pre><code>{`// Valid palindrome
+        <CodeBlock>{`// Valid palindrome
 function isPalindrome(s) {
   s = s.toLowerCase().replace(/[^a-z0-9]/g, '');
   let l = 0, r = s.length - 1;
@@ -97,7 +99,114 @@ function isAnagram(s, t) {
     count[c]--;
   }
   return true;
-}`}</code></pre>
+}`}</CodeBlock>
+      </Accordion>
+    </Card>
+  ),
+  linkedlist: (
+    <Card>
+      <CardHeader title="Linked Lists" tag="Medium Priority" tagColor="yellow" />
+      <div className="highlight"><p><strong>Core Insight:</strong> Almost every linked list problem is solved with <strong>two pointers</strong> (fast/slow or left/right). Draw the pointer manipulation before coding — one wrong <code>.next</code> causes an infinite loop or null crash.</p></div>
+      <Accordion title="Node structure & implementation" defaultOpen>
+        <CodeBlock>{`class ListNode {
+  constructor(val, next = null) {
+    this.val  = val;
+    this.next = next;
+  }
+}
+
+// Build: 1 → 2 → 3 → null
+const head = new ListNode(1, new ListNode(2, new ListNode(3)));`}</CodeBlock>
+        <p>In interviews you're given the head node — you never construct from scratch.</p>
+      </Accordion>
+      <Accordion title="Fast & slow pointers (Floyd's cycle)">
+        <p>Use when you need to find the <strong>middle</strong>, detect a <strong>cycle</strong>, or find the <strong>kth from end</strong>.</p>
+        <CodeBlock>{`// Detect cycle — O(n) time, O(1) space
+function hasCycle(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+    if (slow === fast) return true;
+  }
+  return false;
+}
+
+// Find middle node
+function findMiddle(head) {
+  let slow = head, fast = head;
+  while (fast && fast.next) {
+    slow = slow.next;
+    fast = fast.next.next;
+  }
+  return slow; // slow is at the middle
+}`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Reverse a linked list">
+        <p>The most commonly asked linked list operation. Master both iterative and recursive.</p>
+        <CodeBlock>{`// Iterative — O(n) time, O(1) space
+function reverseList(head) {
+  let prev = null, curr = head;
+  while (curr) {
+    const next = curr.next; // save next
+    curr.next = prev;       // reverse pointer
+    prev = curr;            // advance prev
+    curr = next;            // advance curr
+  }
+  return prev; // new head
+}
+
+// Recursive
+function reverseListRec(head) {
+  if (!head || !head.next) return head;
+  const newHead = reverseListRec(head.next);
+  head.next.next = head;
+  head.next = null;
+  return newHead;
+}`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Merge two sorted lists">
+        <CodeBlock>{`function mergeTwoLists(l1, l2) {
+  const dummy = new ListNode(0);
+  let curr = dummy;
+  while (l1 && l2) {
+    if (l1.val <= l2.val) { curr.next = l1; l1 = l1.next; }
+    else                  { curr.next = l2; l2 = l2.next; }
+    curr = curr.next;
+  }
+  curr.next = l1 ?? l2; // attach remainder
+  return dummy.next;
+}
+// Time: O(n + m)  Space: O(1)`}</CodeBlock>
+        <p><strong>Dummy head trick:</strong> create a throwaway node at the start so you never handle the empty-list edge case separately.</p>
+      </Accordion>
+      <Accordion title="Remove Nth node from end">
+        <p>Two pointers with an <strong>N-step gap</strong>. One pass, O(1) space.</p>
+        <CodeBlock>{`function removeNthFromEnd(head, n) {
+  const dummy = new ListNode(0, head);
+  let fast = dummy, slow = dummy;
+  // advance fast n+1 steps so gap = n
+  for (let i = 0; i <= n; i++) fast = fast.next;
+  while (fast) {
+    fast = fast.next;
+    slow = slow.next;
+  }
+  slow.next = slow.next.next; // skip the target node
+  return dummy.next;
+}`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Complexity & trade-offs vs arrays">
+        <CodeBlock>{`Operation        Linked List    Array
+─────────────────────────────────────
+Access by index  O(n)           O(1)
+Insert at head   O(1)           O(n)
+Insert at tail   O(n)*          O(1) amortized
+Insert at middle O(n) traverse  O(n) shift
+Delete at head   O(1)           O(n)
+Search           O(n)           O(n)
+
+* O(1) if you keep a tail pointer`}</CodeBlock>
+        <p>Prefer linked lists when you need frequent <strong>insertions/deletions at the head</strong> and don't need random access.</p>
       </Accordion>
     </Card>
   ),
@@ -109,7 +218,7 @@ function isAnagram(s, t) {
           <div>
             <h3>BFS (Queue)</h3>
             <ul><li>Shortest path in unweighted graph</li><li>Level-order traversal</li><li>Finding nearest neighbor</li></ul>
-            <pre><code>{`function bfs(root) {
+            <CodeBlock>{`function bfs(root) {
   const queue = [root];
   while (queue.length) {
     const node = queue.shift();
@@ -117,22 +226,22 @@ function isAnagram(s, t) {
     if (node.left) queue.push(node.left);
     if (node.right) queue.push(node.right);
   }
-}`}</code></pre>
+}`}</CodeBlock>
           </div>
           <div>
             <h3>DFS (Recursion)</h3>
             <ul><li>Path existence</li><li>Tree height / depth</li><li>Topological sort</li></ul>
-            <pre><code>{`function dfs(node, visited = new Set()) {
+            <CodeBlock>{`function dfs(node, visited = new Set()) {
   if (!node || visited.has(node)) return;
   visited.add(node);
   for (const n of node.neighbors) dfs(n, visited);
-}`}</code></pre>
+}`}</CodeBlock>
           </div>
         </div>
       </Accordion>
       <Accordion title="BST Search — DFS (Recursive)" defaultOpen>
         <p>A Binary Search Tree is already sorted — at each node, go right if needle is larger, left if smaller. No need to visit both children.</p>
-        <pre><code>{`// Uses DFS — exploits BST ordering property to prune half the tree each step
+        <CodeBlock>{`// Uses DFS — exploits BST ordering property to prune half the tree each step
 function binary_search(head, needle) {
   return search(head, needle);
 }
@@ -149,12 +258,12 @@ function search(curr, needle) {
   }
 }
 // Time: O(h) — h = tree height; O(log n) balanced, O(n) worst (skewed)
-// Space: O(h) — call stack depth`}</code></pre>
+// Space: O(h) — call stack depth`}</CodeBlock>
         <p><strong>Key distinction:</strong> This only works on a <strong>BST</strong> (ordered). The BFS search below works on <em>any</em> binary tree but is O(n) — it can't prune branches because there's no ordering guarantee.</p>
       </Accordion>
       <Accordion title="BFS Search">
         <p>Walk level by level using a queue. Returns <code>true</code> as soon as the target value is found.</p>
-        <pre><code>{`function bfs_search(head, needle) {
+        <CodeBlock>{`function bfs_search(head, needle) {
   const q = [head];
 
   while (q.length) {
@@ -172,12 +281,12 @@ function search(curr, needle) {
   return false;
 }
 // Time: O(n) — visits every node in worst case
-// Space: O(w) — w = max width of tree (worst case O(n) for full tree)`}</code></pre>
+// Space: O(w) — w = max width of tree (worst case O(n) for full tree)`}</CodeBlock>
         <p><strong>Key detail:</strong> <code>q.shift()</code> dequeues from the front (FIFO) — this is what makes it BFS. Swap to a stack (<code>q.pop()</code>) and it becomes DFS.</p>
       </Accordion>
       <Accordion title="Invert a Binary Tree">
         <p>Two approaches — recursive is cleaner; iterative (BFS) avoids call stack overflow on very deep trees.</p>
-        <pre><code>{`class TreeNode {
+        <CodeBlock>{`class TreeNode {
   val: number
   left: TreeNode | null
   right: TreeNode | null
@@ -225,12 +334,12 @@ function invertTreeIterative(root: TreeNode | null): TreeNode | null {
 
   return root
 }
-// Time: O(n)  Space: O(w) — w = max width of tree`}</code></pre>
+// Time: O(n)  Space: O(w) — w = max width of tree`}</CodeBlock>
         <p><strong>Interview tip:</strong> Both are O(n) time. The recursive approach uses O(h) stack space — O(log n) for balanced, O(n) worst case (skewed tree). The iterative BFS approach uses O(w) queue space — safer for very deep trees where recursion could stack overflow.</p>
       </Accordion>
       <Accordion title="Compare Binary Trees">
         <p>Three base cases handle all structural and value mismatches before recursing.</p>
-        <pre><code>{`function compare_binary_trees(a, b) {
+        <CodeBlock>{`function compare_binary_trees(a, b) {
   // base case 1 — both null: same structure, nothing left to check
   if (a === null && b === null) {
     return true;
@@ -249,7 +358,7 @@ function invertTreeIterative(root: TreeNode | null): TreeNode | null {
   return compare_binary_trees(a.left, b.left)
       && compare_binary_trees(a.right, b.right);
 }
-// Time: O(n)  Space: O(h) — h = tree height (call stack)`}</code></pre>
+// Time: O(n)  Space: O(h) — h = tree height (call stack)`}</CodeBlock>
         <p><strong>Interview tip:</strong> The order of base cases matters — check structural equality (both null) before value equality, otherwise you'd dereference null. Short-circuit <code>&&</code> means the right subtree is only checked if the left already matched.</p>
       </Accordion>
       <Accordion title="Common Tree Problems">
@@ -267,7 +376,7 @@ function invertTreeIterative(root: TreeNode | null): TreeNode | null {
       <CardHeader title="Dynamic Programming" tag="High Priority" tagColor="red" />
       <div className="highlight orange"><p><strong>DP Framework:</strong> (1) Define subproblem. (2) Find recurrence. (3) Identify base cases. (4) Choose memoization or tabulation.</p></div>
       <Accordion title="Core Patterns to Know" defaultOpen>
-        <pre><code>{`// 1. Fibonacci (top-down memoization)
+        <CodeBlock>{`// 1. Fibonacci (top-down memoization)
 function fib(n, memo = {}) {
   if (n <= 1) return n;
   if (memo[n]) return memo[n];
@@ -296,7 +405,7 @@ function lcs(s1, s2) {
         ? dp[i-1][j-1] + 1
         : Math.max(dp[i-1][j], dp[i][j-1]);
   return dp[s1.length][s2.length];
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -304,7 +413,7 @@ function lcs(s1, s2) {
     <Card>
       <CardHeader title="Async / Promises (JavaScript)" tag="Full-Stack Specific" tagColor="purple" />
       <Accordion title="Promise Patterns You Must Know" defaultOpen>
-        <pre><code>{`// Sequential vs Parallel
+        <CodeBlock>{`// Sequential vs Parallel
 const a = await fetchA();         // sequential (slow)
 const [a, b] = await Promise.all([fetchA(), fetchB()]); // parallel
 
@@ -323,7 +432,7 @@ async function retry(fn, retries = 3, delay = 1000) {
     await new Promise(r => setTimeout(r, delay));
     return retry(fn, retries - 1, delay * 2);
   }
-}`}</code></pre>
+}`}</CodeBlock>
       </Accordion>
     </Card>
   ),
@@ -373,7 +482,7 @@ async function retry(fn, retries = 3, delay = 1000) {
     <Card>
       <CardHeader title="Sorting & Searching" tag="Medium Priority" />
       <Accordion title="Binary Search (versatile)" defaultOpen>
-        <pre><code>{`const binarySearch = (array, item) =>{
+        <CodeBlock>{`const binarySearch = (array, item) =>{
 	let start = 0;
 	let end = array.length;
 	
@@ -393,12 +502,12 @@ async function retry(fn, retries = 3, delay = 1000) {
 	return false
 };
 // Tip: binary search works on any monotonic function,
-// not just sorted arrays — think "search space"!`}</code></pre>
+// not just sorted arrays — think "search space"!`}</CodeBlock>
       </Accordion>
       <Accordion title="Quicksort — In-Place (TypeScript)">
         <p><strong>Time:</strong> O(n log n) avg, O(n²) worst (sorted input) &nbsp;|&nbsp; <strong>Space:</strong> O(log n) call stack</p>
         <p>Partition picks a pivot (last element), moves all smaller elements left of it, then recurses on both halves.</p>
-        <pre><code>{`function qs(arr: number[], lo: number, hi: number): void {
+        <CodeBlock>{`function qs(arr: number[], lo: number, hi: number): void {
   if (lo >= hi) {
     return;
   }
@@ -436,12 +545,12 @@ function quickSort(arr: number[]): void {
 // Usage
 const nums = [3, 6, 8, 10, 1, 2, 1];
 quickSort(nums);
-// nums is now [1, 1, 2, 3, 6, 8, 10]`}</code></pre>
+// nums is now [1, 1, 2, 3, 6, 8, 10]`}</CodeBlock>
       </Accordion>
       <Accordion title="Quicksort — New Array (functional JS)">
         <p><strong>Time:</strong> O(n log n) avg &nbsp;|&nbsp; <strong>Space:</strong> O(n) — creates new arrays at each level</p>
         <p>Simpler to read and explain; good when you want to avoid mutation.</p>
-        <pre><code>{`const quickSort = (arr) => {
+        <CodeBlock>{`const quickSort = (arr) => {
   if (arr.length <= 1) return arr;
   const p = arr[arr.length - 1]; // pivot = last element
   const leftArr = [];
@@ -458,7 +567,7 @@ quickSort(nums);
 
 // Usage
 quickSort([3, 6, 8, 10, 1, 2, 1]);
-// [1, 1, 2, 3, 6, 8, 10]`}</code></pre>
+// [1, 1, 2, 3, 6, 8, 10]`}</CodeBlock>
         <div className="highlight orange" style={{ marginTop: 12 }}>
           <p><strong>Interview tip:</strong> Mention the tradeoff — in-place is O(log n) space (better for large datasets); functional version is cleaner to explain but O(n) space due to array spreading. Native <code>Array.sort()</code> in V8 uses TimSort (merge + insertion) — O(n log n) guaranteed.</p>
         </div>
@@ -468,16 +577,110 @@ quickSort([3, 6, 8, 10, 1, 2, 1]);
   api: (
     <Card>
       <CardHeader title="REST API Design" tag="Full-Stack Essential" tagColor="green" />
-      <Accordion title="Best Practices" defaultOpen>
+      <Accordion title="Nouns not verbs in URLs" defaultOpen>
+        <p>Design URLs around <strong>resources</strong>, not actions. The HTTP method expresses the action.</p>
+        <CodeBlock>{`// ✅ Good — resource-oriented
+GET    /users          → list users
+GET    /users/42       → get user 42
+POST   /users          → create user
+PATCH  /users/42       → partial update
+DELETE /users/42       → delete user
+
+// ❌ Bad — RPC-style
+GET /getUser?id=42
+POST /createUser
+POST /deleteUser/42`}</CodeBlock>
+        <p>Nest resources to express ownership: <code>/users/42/orders/7</code> — but keep nesting shallow (max 2 levels).</p>
+      </Accordion>
+      <Accordion title="HTTP methods & idempotency">
+        <p>Choosing the right method signals intent and enables caching/retries.</p>
+        <CodeBlock>{`GET    — safe, idempotent. Never mutate state.
+POST   — not idempotent. Creates a new resource each call.
+PUT    — idempotent. Replaces the entire resource.
+PATCH  — not guaranteed idempotent. Partial update.
+DELETE — idempotent. Deleting twice → same result (resource gone).`}</CodeBlock>
+        <p><strong>Idempotent</strong> means calling it N times has the same effect as calling it once — safe to retry on network failure.</p>
+      </Accordion>
+      <Accordion title="Status codes">
+        <CodeBlock>{`2xx — Success
+  200 OK           → GET / PATCH / DELETE succeeded
+  201 Created      → POST succeeded, include Location header
+  204 No Content   → DELETE / action with no body to return
+
+4xx — Client error (don't retry without fixing the request)
+  400 Bad Request  → malformed JSON / missing required field
+  401 Unauthorized → missing or invalid auth token
+  403 Forbidden    → authenticated but lacks permission
+  404 Not Found    → resource doesn't exist
+  409 Conflict     → duplicate resource / optimistic lock failure
+  422 Unprocessable→ valid JSON but failed business validation
+  429 Too Many Req → rate limit hit
+
+5xx — Server error (safe to retry with backoff)
+  500 Internal     → unexpected server crash
+  502 Bad Gateway  → upstream service failed
+  503 Unavailable  → server overloaded / in maintenance`}</CodeBlock>
+      </Accordion>
+      <Accordion title="API versioning">
+        <p>Version from day one — breaking changes are inevitable.</p>
+        <CodeBlock>{`// URL versioning (most common, easiest to debug)
+GET /api/v1/users
+GET /api/v2/users
+
+// Header versioning (cleaner URLs, harder to test in browser)
+GET /api/users
+Accept: application/vnd.myapp.v2+json
+
+// Query param (avoid — caching unfriendly)
+GET /api/users?version=2`}</CodeBlock>
+        <p>Bump the version on any <strong>breaking change</strong>: removing a field, renaming a field, changing a type, altering behaviour. Additive changes (new optional fields) don't need a bump.</p>
+      </Accordion>
+      <Accordion title="Pagination">
+        <p><strong>Cursor-based</strong> (preferred for production):</p>
+        <CodeBlock>{`GET /posts?limit=20&cursor=eyJpZCI6MTAwfQ==
+
+// Response
+{
+  "data": [...],
+  "pagination": {
+    "nextCursor": "eyJpZCI6MTIwfQ==",
+    "hasMore": true
+  }
+}`}</CodeBlock>
+        <p><strong>Offset-based</strong> (simpler but fragile):</p>
+        <CodeBlock>{`GET /posts?limit=20&offset=40
+// Problem: if a row is inserted on page 1 while reading page 2,
+// you skip or duplicate a record.`}</CodeBlock>
+        <p>Use cursor-based when data changes frequently. Use offset for admin UIs where "jump to page N" matters.</p>
+      </Accordion>
+      <Accordion title="Consistent error format">
+        <p>Every error response should have the same shape so clients can handle them generically.</p>
+        <CodeBlock>{`// Response body for any 4xx / 5xx
+{
+  "error": {
+    "code": "VALIDATION_FAILED",      // machine-readable
+    "message": "Email is required",   // human-readable
+    "details": [                      // optional field-level errors
+      { "field": "email", "issue": "required" }
+    ],
+    "requestId": "req_abc123"         // for support/tracing
+  }
+}`}</CodeBlock>
+        <p>Never expose raw stack traces or DB errors to clients in production.</p>
+      </Accordion>
+      <Accordion title="Rate limiting">
+        <p>Always communicate limits through response headers:</p>
+        <CodeBlock>{`X-RateLimit-Limit:     100   // max requests per window
+X-RateLimit-Remaining: 42    // requests left this window
+X-RateLimit-Reset:     1700000000  // Unix timestamp window resets
+Retry-After:           30    // seconds to wait (on 429)`}</CodeBlock>
+        <p><strong>Strategies:</strong></p>
         <ul>
-          <li>Use <strong>nouns not verbs</strong> in URLs: <code>/users/&#123;id&#125;</code> not <code>/getUser</code></li>
-          <li>Proper <strong>HTTP methods</strong>: GET (read), POST (create), PUT (replace), PATCH (update), DELETE</li>
-          <li>Correct <strong>status codes</strong>: 200, 201, 204, 400, 401, 403, 404, 422, 500</li>
-          <li>Version your API: <code>/api/v1/</code></li>
-          <li>Use <strong>pagination</strong> for lists: cursor-based preferred over offset</li>
-          <li>Consistent error format: <code>{"{ error: { code, message, details } }"}</code></li>
-          <li>Rate limiting with headers: <code>X-RateLimit-Remaining</code></li>
+          <li><strong>Fixed window</strong> — simple, but bursts at window boundary</li>
+          <li><strong>Sliding window</strong> — smoother, higher memory cost</li>
+          <li><strong>Token bucket</strong> — allows controlled bursts, used by most cloud gateways</li>
         </ul>
+        <p>Key by: IP for anonymous, user ID for authenticated, API key for third-party.</p>
       </Accordion>
     </Card>
   ),

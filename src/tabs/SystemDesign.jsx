@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Accordion from '../components/Accordion';
 import { Card, CardHeader } from '../components/Card';
 import { SidebarLayout, SidebarSection, SidebarItem } from '../components/SidebarLayout';
+import CodeBlock from '../components/CodeBlock';
 
 const TOPICS = [
   { id: 'framework',     label: 'Design Framework' },
@@ -68,7 +69,7 @@ Data Layer:
           <li><strong>React Query / SWR:</strong> Client-side stale-while-revalidate — instant UI + background refresh</li>
           <li><strong>Redis (ElastiCache):</strong> Cache expensive DB queries or 3rd party API responses in API routes</li>
         </ul>
-        <pre><code>{`// Next.js 14 — granular cache control per fetch
+        <CodeBlock>{`// Next.js 14 — granular cache control per fetch
 const data = await fetch('/api/products', {
   next: {
     revalidate: 300,          // ISR — regenerate after 5 min
@@ -78,10 +79,10 @@ const data = await fetch('/api/products', {
 
 // On-demand revalidation (e.g. after CMS publish webhook)
 import { revalidateTag } from 'next/cache';
-revalidateTag('products'); // purges all fetches tagged 'products'`}</code></pre>
+revalidateTag('products'); // purges all fetches tagged 'products'`}</CodeBlock>
       </Accordion>
       <Accordion title="Authentication Architecture">
-        <pre><code>{`// NextAuth.js (Auth.js v5) — most common pattern
+        <CodeBlock>{`// NextAuth.js (Auth.js v5) — most common pattern
 // auth.ts
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -106,7 +107,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 });
-export const config = { matcher: ['/dashboard/:path*'] };`}</code></pre>
+export const config = { matcher: ['/dashboard/:path*'] };`}</CodeBlock>
         <p><strong>Security note:</strong> Validate session on the server for every sensitive API route — never trust client-side auth state alone.</p>
       </Accordion>
       <Accordion title="Performance Wins to Mention">
@@ -140,7 +141,7 @@ export const config = { matcher: ['/dashboard/:path*'] };`}</code></pre>
           <li><strong>Rate limiting:</strong> Upstash Redis rate limiter in middleware or API routes</li>
           <li><strong>Dependency scanning:</strong> <code>npm audit</code> + Snyk in CI — <code>next</code> updates frequently</li>
         </ul>
-        <pre><code>{`// next.config.js — security headers
+        <CodeBlock>{`// next.config.js — security headers
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -151,7 +152,7 @@ module.exports = {
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
-};`}</code></pre>
+};`}</CodeBlock>
       </Accordion>
       <Accordion title="Deployment Options & Tradeoffs">
         <div className="grid-2">
