@@ -28,7 +28,9 @@ const CONTENT = {
   const map = new Map(); // value -> index
   for (let i = 0; i < nums.length; i++) {
     const complement = target - nums[i];
-    if (map.has(complement)) return [map.get(complement), i];
+    if (map.has(complement)) {
+      return [map.get(complement), i];
+    } 
     map.set(nums[i], i);
   }
   return [];
@@ -127,6 +129,128 @@ function isAnagram(s, t) {
 }`}</code></pre>
           </div>
         </div>
+      </Accordion>
+      <Accordion title="BST Search — DFS (Recursive)" defaultOpen>
+        <p>A Binary Search Tree is already sorted — at each node, go right if needle is larger, left if smaller. No need to visit both children.</p>
+        <pre><code>{`// Uses DFS — exploits BST ordering property to prune half the tree each step
+function binary_search(head, needle) {
+  return search(head, needle);
+}
+
+function search(curr, needle) {
+  if (!curr) return false;              // base case: fell off tree, not found
+
+  if (curr.value === needle) return true; // found
+
+  if (curr.value < needle) {
+    return search(curr.right, needle);  // needle is larger — go right
+  } else {
+    return search(curr.left, needle);   // needle is smaller — go left
+  }
+}
+// Time: O(h) — h = tree height; O(log n) balanced, O(n) worst (skewed)
+// Space: O(h) — call stack depth`}</code></pre>
+        <p><strong>Key distinction:</strong> This only works on a <strong>BST</strong> (ordered). The BFS search below works on <em>any</em> binary tree but is O(n) — it can't prune branches because there's no ordering guarantee.</p>
+      </Accordion>
+      <Accordion title="BFS Search">
+        <p>Walk level by level using a queue. Returns <code>true</code> as soon as the target value is found.</p>
+        <pre><code>{`function bfs_search(head, needle) {
+  const q = [head];
+
+  while (q.length) {
+    const curr = q.shift();
+
+    // search
+    if (curr.value === needle) {
+      return true;
+    }
+
+    if (curr.left)  q.push(curr.left);
+    if (curr.right) q.push(curr.right);
+  }
+
+  return false;
+}
+// Time: O(n) — visits every node in worst case
+// Space: O(w) — w = max width of tree (worst case O(n) for full tree)`}</code></pre>
+        <p><strong>Key detail:</strong> <code>q.shift()</code> dequeues from the front (FIFO) — this is what makes it BFS. Swap to a stack (<code>q.pop()</code>) and it becomes DFS.</p>
+      </Accordion>
+      <Accordion title="Invert a Binary Tree">
+        <p>Two approaches — recursive is cleaner; iterative (BFS) avoids call stack overflow on very deep trees.</p>
+        <pre><code>{`class TreeNode {
+  val: number
+  left: TreeNode | null
+  right: TreeNode | null
+
+  constructor(val?: number, left?: TreeNode | null, right?: TreeNode | null) {
+    this.val = val ?? 0
+    this.left = left ?? null
+    this.right = right ?? null
+  }
+}
+
+// RECURSIVE (DFS post-order)
+// Invert children first, then swap at current node
+function invertTree(root: TreeNode | null): TreeNode | null {
+  if (!root) return null
+
+  const left = invertTree(root.left)
+  const right = invertTree(root.right)
+
+  root.left = right
+  root.right = left
+
+  return root
+}
+// Time: O(n)  Space: O(h) — h = tree height (call stack)
+
+// ITERATIVE (BFS)
+// Swap left/right at each node as we traverse level by level
+function invertTreeIterative(root: TreeNode | null): TreeNode | null {
+  if (!root) return null
+
+  const queue: TreeNode[] = [root]
+
+  while (queue.length) {
+    const node = queue.shift()!
+
+    // swap
+    const temp = node.left
+    node.left = node.right
+    node.right = temp
+
+    if (node.left)  queue.push(node.left)
+    if (node.right) queue.push(node.right)
+  }
+
+  return root
+}
+// Time: O(n)  Space: O(w) — w = max width of tree`}</code></pre>
+        <p><strong>Interview tip:</strong> Both are O(n) time. The recursive approach uses O(h) stack space — O(log n) for balanced, O(n) worst case (skewed tree). The iterative BFS approach uses O(w) queue space — safer for very deep trees where recursion could stack overflow.</p>
+      </Accordion>
+      <Accordion title="Compare Binary Trees">
+        <p>Three base cases handle all structural and value mismatches before recursing.</p>
+        <pre><code>{`function compare_binary_trees(a, b) {
+  // base case 1 — both null: same structure, nothing left to check
+  if (a === null && b === null) {
+    return true;
+  }
+
+  // base case 2 — one null, one not: structures differ
+  if (a === null || b === null) {
+    return false;
+  }
+
+  // base case 3 — same structure but values differ
+  if (a.value !== b.value) {
+    return false;
+  }
+
+  return compare_binary_trees(a.left, b.left)
+      && compare_binary_trees(a.right, b.right);
+}
+// Time: O(n)  Space: O(h) — h = tree height (call stack)`}</code></pre>
+        <p><strong>Interview tip:</strong> The order of base cases matters — check structural equality (both null) before value equality, otherwise you'd dereference null. Short-circuit <code>&&</code> means the right subtree is only checked if the left already matched.</p>
       </Accordion>
       <Accordion title="Common Tree Problems">
         <ul>
@@ -249,18 +373,95 @@ async function retry(fn, retries = 3, delay = 1000) {
     <Card>
       <CardHeader title="Sorting & Searching" tag="Medium Priority" />
       <Accordion title="Binary Search (versatile)" defaultOpen>
-        <pre><code>{`function binarySearch(arr, target) {
-  let lo = 0, hi = arr.length - 1;
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (arr[mid] === target) return mid;
-    else if (arr[mid] < target) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return -1;
-}
+        <pre><code>{`const binarySearch = (array, item) =>{
+	let start = 0;
+	let end = array.length;
+	
+	while( start < end) {
+		
+		const mid = Math.floor(start + (end - start)/2);
+		const v = array[mid];
+		
+		if(v === item) {
+			return true;
+		} else if(v > item) {
+			end = mid;
+		} else {
+			start = mid + 1;
+		}	
+	}
+	return false
+};
 // Tip: binary search works on any monotonic function,
 // not just sorted arrays — think "search space"!`}</code></pre>
+      </Accordion>
+      <Accordion title="Quicksort — In-Place (TypeScript)">
+        <p><strong>Time:</strong> O(n log n) avg, O(n²) worst (sorted input) &nbsp;|&nbsp; <strong>Space:</strong> O(log n) call stack</p>
+        <p>Partition picks a pivot (last element), moves all smaller elements left of it, then recurses on both halves.</p>
+        <pre><code>{`function qs(arr: number[], lo: number, hi: number): void {
+  if (lo >= hi) {
+    return;
+  }
+
+  const pivotIdx = partition(arr, lo, hi);
+  qs(arr, lo, pivotIdx - 1);
+  qs(arr, pivotIdx + 1, hi);
+}
+
+function partition(arr: number[], lo: number, hi: number): number {
+  const pivot = arr[hi];
+
+  let idx = lo - 1;
+
+  for (let i = lo; i < hi; ++i) {
+    if (arr[i] <= pivot) {
+      idx++;
+      const tmp = arr[i];
+      arr[i] = arr[idx];
+      arr[idx] = tmp;
+    }
+  }
+
+  idx++;
+  arr[hi] = arr[idx];
+  arr[idx] = pivot;
+
+  return idx;
+}
+
+function quickSort(arr: number[]): void {
+  qs(arr, 0, arr.length - 1);
+}
+
+// Usage
+const nums = [3, 6, 8, 10, 1, 2, 1];
+quickSort(nums);
+// nums is now [1, 1, 2, 3, 6, 8, 10]`}</code></pre>
+      </Accordion>
+      <Accordion title="Quicksort — New Array (functional JS)">
+        <p><strong>Time:</strong> O(n log n) avg &nbsp;|&nbsp; <strong>Space:</strong> O(n) — creates new arrays at each level</p>
+        <p>Simpler to read and explain; good when you want to avoid mutation.</p>
+        <pre><code>{`const quickSort = (arr) => {
+  if (arr.length <= 1) return arr;
+  const p = arr[arr.length - 1]; // pivot = last element
+  const leftArr = [];
+  const rightArr = [];
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] <= p) {
+      leftArr.push(arr[i]);
+    } else {
+      rightArr.push(arr[i]);
+    }
+  }
+  return [...quickSort(leftArr), p, ...quickSort(rightArr)];
+};
+
+// Usage
+quickSort([3, 6, 8, 10, 1, 2, 1]);
+// [1, 1, 2, 3, 6, 8, 10]`}</code></pre>
+        <div className="highlight orange" style={{ marginTop: 12 }}>
+          <p><strong>Interview tip:</strong> Mention the tradeoff — in-place is O(log n) space (better for large datasets); functional version is cleaner to explain but O(n) space due to array spreading. Native <code>Array.sort()</code> in V8 uses TimSort (merge + insertion) — O(n log n) guaranteed.</p>
+        </div>
       </Accordion>
     </Card>
   ),

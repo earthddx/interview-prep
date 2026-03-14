@@ -108,6 +108,45 @@ for (var i = 0; i < 3; i++) {
   ((j) => setTimeout(() => console.log(j), 0))(i);
 }`}</code></pre>
       </Accordion>
+      <Accordion title="Debounce & Throttle (closure-powered)">
+        <p>Both patterns use closures to persist state (timer ID, last call time) across invocations without exposing it.</p>
+        <pre><code>{`// DEBOUNCE — waits until calls STOP for 'delay' ms, then fires once
+// Use: search input, window resize handler, form auto-save
+function debounce(fn, delay) {
+  let timerId;                        // closed over — persists between calls
+  return function (...args) {
+    clearTimeout(timerId);            // reset the clock on every call
+    timerId = setTimeout(() => {
+      fn.apply(this, args);           // fire only after silence
+    }, delay);
+  };
+}
+
+const handleSearch = debounce((query) => {
+  fetchResults(query);
+}, 300); // API called only after user stops typing for 300ms
+
+// THROTTLE — fires at most once per 'limit' ms, ignores calls in between
+// Use: scroll events, mouse move, button spam prevention
+function throttle(fn, limit) {
+  let lastCall = 0;                   // closed over — tracks last execution time
+  return function (...args) {
+    const now = Date.now();
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      fn.apply(this, args);
+    }
+  };
+}
+
+const handleScroll = throttle(() => {
+  updateScrollProgress();
+}, 100); // runs at most every 100ms no matter how fast user scrolls
+
+// KEY DIFFERENCE:
+// Debounce: delays until quiet  → good for "final value" (search query)
+// Throttle: limits frequency    → good for "continuous stream" (scroll position)`}</code></pre>
+      </Accordion>
       <Accordion title="Hoisting Rules">
         <ul>
           <li><code>var</code> — hoisted and initialized to <code>undefined</code></li>
