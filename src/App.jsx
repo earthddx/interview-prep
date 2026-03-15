@@ -12,9 +12,9 @@ import JSReact from './tabs/JSReact';
 const TABS = [
   { id: 'overview',   label: 'Overview',          badge: 'Home',          path: '/' },
   { id: 'jsreact',    label: 'JS & React',         badge: '12 topics',     path: '/jsreact' },
-  { id: 'coding',     label: 'Coding Assessment',  badge: '10 topics',     path: '/coding' },
+  { id: 'coding',     label: 'Coding Assessment',  badge: '15 topics',     path: '/coding' },
   { id: 'sysdesign',  label: 'System Design',      badge: '8 scenarios',   path: '/sysdesign' },
-  { id: 'behavioral', label: 'Behavioral',         badge: '12 questions',  path: '/behavioral' },
+  { id: 'behavioral', label: 'Behavioral',         badge: '8 categories',  path: '/behavioral' },
   { id: 'quiz',       label: 'Quiz Me',            badge: 'Flash',         path: '/quiz' },
 ];
 
@@ -26,7 +26,7 @@ export default function App() {
   const activeTab = TABS.find(t => t.path === pathname)?.id ?? 'overview';
   const markDone = (id) => setDoneSections(prev => new Set([...prev, id]));
 
-  const totalTopics = 12 + 10 + 7 + 7;
+  const totalTopics = 12 + 15 + 8 + 8;
   const pct = Math.round((doneSections.size / totalTopics) * 100);
 
   return (

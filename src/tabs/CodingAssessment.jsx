@@ -9,6 +9,7 @@ const TOPICS = [
   { id: 'strings',    label: 'Strings' },
   { id: 'linkedlist', label: 'Linked Lists' },
   { id: 'trees',      label: 'Trees & Graphs' },
+  { id: 'trie',       label: 'Trie' },
   { id: 'dp',         label: 'Dynamic Programming' },
   { id: 'async',      label: 'Async / Promises' },
   { id: 'oop',        label: 'OOP & Design Patterns' },
@@ -642,6 +643,150 @@ mazeSolve(maze, "#", { x:1, y:1 }, { x:7, y:5 });
 // Time: O(V+E) = O(rows × cols)  Space: O(rows × cols) for seen + call stack`}</CodeBlock>
         <p><strong>Why <code>path.pop()</code> works:</strong> DFS explores one direction fully before trying the next. If it bottoms out without reaching the end, the post step removes the dead-end cells — so by the time the recursion unwinds to the correct branch, <code>path</code> only contains cells on the winning route.</p>
         <p><strong>vs Number of Islands:</strong> Islands uses flood-fill (mark and never undo) — it just <em>counts</em> regions. Maze solver needs the actual path, so it <em>backtracks</em> on failure.</p>
+      </Accordion>
+    </Card>
+  ),
+  trie: (
+    <Card>
+      <CardHeader title="Trie (Prefix Tree)" tag="Medium Priority" tagColor="yellow" />
+      <Accordion title="What is a Trie?" defaultOpen>
+        <p>A <strong>Trie</strong> (pronounced "try", from re<em>trie</em>val) is a tree where each node represents a <strong>single character</strong>. A path from root to a marked node spells out a word. It's optimised for prefix-based operations — things an array or hashmap can't do efficiently.</p>
+        <CodeBlock>{`// Visualising the words: "cat", "car", "card", "care", "dog"
+//
+//          root
+//         /    \\
+//        c      d
+//        |      |
+//        a      o
+//        |      |
+//        t*     g*
+//        |
+//        r
+//       / \\
+//      d*  e*
+//
+// * = isEndOfWord = true
+// Each node stores: children (map of char → node), isEndOfWord flag`}</CodeBlock>
+        <p><strong>When to reach for a Trie:</strong></p>
+        <ul>
+          <li>Autocomplete / search suggestions</li>
+          <li>Spell checker</li>
+          <li>"Does any word start with this prefix?" queries</li>
+          <li>Word games (Boggle, Wordle solvers)</li>
+        </ul>
+      </Accordion>
+      <Accordion title="Implementation">
+        <CodeBlock>{`class TrieNode {
+  constructor() {
+    this.children = {};   // char → TrieNode
+    this.isEndOfWord = false;
+  }
+}
+
+class Trie {
+  constructor() {
+    this.root = new TrieNode();
+  }
+
+  // Insert a word — O(m) where m = word length
+  insert(word) {
+    let node = this.root;
+    for (const char of word) {
+      if (!node.children[char]) {
+        node.children[char] = new TrieNode();
+      }
+      node = node.children[char];
+    }
+    node.isEndOfWord = true;
+  }
+
+  // Search for an exact word — O(m)
+  search(word) {
+    let node = this.root;
+    for (const char of word) {
+      if (!node.children[char]) return false;
+      node = node.children[char];
+    }
+    return node.isEndOfWord;  // path exists AND it's a complete word
+  }
+
+  // Does any inserted word start with this prefix? — O(m)
+  startsWith(prefix) {
+    let node = this.root;
+    for (const char of prefix) {
+      if (!node.children[char]) return false;
+      node = node.children[char];
+    }
+    return true;  // path exists — at least one word has this prefix
+  }
+}
+
+// Usage
+const trie = new Trie();
+trie.insert("cat");
+trie.insert("car");
+trie.insert("card");
+
+trie.search("car");       // true
+trie.search("ca");        // false — path exists but not a word end
+trie.startsWith("ca");    // true
+trie.startsWith("dog");   // false`}</CodeBlock>
+      </Accordion>
+      <Accordion title="search() vs startsWith() — The Key Distinction">
+        <CodeBlock>{`// After inserting "car" and "card":
+//
+//  root → c → a → r* → d*
+//                 ↑        ↑
+//           isEndOfWord  isEndOfWord
+//
+// search("car")     → true  (node.isEndOfWord = true)
+// search("ca")      → false (node.isEndOfWord = false — path exists but no word ends here)
+// search("cart")    → false (no 't' child under 'r')
+// startsWith("car") → true  (path exists — don't care about isEndOfWord)
+// startsWith("ca")  → true  (path exists)
+// startsWith("cat") → false (no 't' child under 'a' in this example)`}</CodeBlock>
+        <p><strong>Rule:</strong> <code>search</code> needs the path to exist AND end with <code>isEndOfWord = true</code>. <code>startsWith</code> only needs the path to exist.</p>
+      </Accordion>
+      <Accordion title="Get All Words with a Prefix (Autocomplete)">
+        <CodeBlock>{`// Return all words that start with the given prefix
+getWordsWithPrefix(prefix) {
+  let node = this.root;
+  // Walk to the end of the prefix
+  for (const char of prefix) {
+    if (!node.children[char]) return [];
+    node = node.children[char];
+  }
+  // DFS from that node to collect all complete words
+  const results = [];
+  this._dfs(node, prefix, results);
+  return results;
+}
+
+_dfs(node, current, results) {
+  if (node.isEndOfWord) results.push(current);
+  for (const [char, child] of Object.entries(node.children)) {
+    this._dfs(child, current + char, results);
+  }
+}
+
+// Usage
+trie.insert("cat"); trie.insert("car"); trie.insert("card"); trie.insert("care");
+trie.getWordsWithPrefix("car"); // ["car", "card", "care"]`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Complexity">
+        <CodeBlock>{`Operation         Time      Space
+──────────────────────────────────────────
+insert(word)      O(m)      O(m) new nodes worst case
+search(word)      O(m)      O(1)
+startsWith(pre)   O(m)      O(1)
+getWordsWithPre   O(m + k)  O(k) result list
+
+m = length of word/prefix
+k = number of words returned
+
+Space for the whole trie: O(n × m) — n words of avg length m
+Each node stores up to 26 children (for lowercase English)`}</CodeBlock>
+        <p><strong>vs HashMap:</strong> A HashMap can tell you if a word exists in O(1), but can't answer "does anything start with 'ca'?" without scanning all keys. A Trie answers prefix queries in O(m) — the length of the prefix, regardless of how many words are stored.</p>
       </Accordion>
     </Card>
   ),
