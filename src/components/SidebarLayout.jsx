@@ -1,18 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styles from './SidebarLayout.module.css';
 
-export function SidebarLayout({ sidebar, timer, children }) {
+export function SidebarLayout({ sidebar, children }) {
   const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    const handler = (e) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
 
   return (
     <div className={styles.layout}>
@@ -20,12 +10,10 @@ export function SidebarLayout({ sidebar, timer, children }) {
         <button className={styles.menuToggle} onClick={() => setOpen(o => !o)}>
           {open ? '✕ Close' : '☰ Topics'}
         </button>
-        {isMobile && timer && <div className={styles.mobileTimer}>{timer}</div>}
       </div>
       <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : ''}`}>
         <button className={styles.sidebarClose} onClick={() => setOpen(false)}>✕</button>
         {sidebar}
-        {!isMobile && timer && <div className={styles.sidebarTimerSection}>{timer}</div>}
       </aside>
       {open && <div className={styles.overlay} onClick={() => setOpen(false)} />}
       <div className={styles.content}>{children}</div>

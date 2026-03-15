@@ -7,9 +7,9 @@ import CodeBlock from '../components/CodeBlock';
 const TOPICS = [
   { id: 'framework',     label: 'Design Framework' },
   { id: 'nextjs',        label: 'React/Next.js App Architecture' },
-  { id: 'serverless',    label: 'Serverless API Platform' },
-  { id: 'microservices', label: 'Microservices Architecture' },
-  { id: 'eventdriven',   label: 'Event-Driven System' },
+  { id: 'reactnative',   label: 'React Native App Architecture' },
+  { id: 'statemanage',   label: 'State Management at Scale' },
+  { id: 'socialfeed',    label: 'Design a Social Feed' },
   { id: 'microfrontend', label: 'Microfrontend' },
   { id: 'cicd',          label: 'CI/CD & DevSecOps Pipeline' },
   { id: 'nextrag',       label: 'RAG App (next-rag)' },
@@ -221,91 +221,374 @@ module.exports = {
       </div>
     </Card>
   ),
-  serverless: (
+  reactnative: (
     <Card>
-      <CardHeader title="Design: Serverless Customer-Facing API Platform" tag="AWS Serverless" />
-      <div className="highlight"><p><strong>Prompt:</strong> "Design a high-availability REST API platform for a customer-facing web app. 50K users, low latency reads, auto-scaling."</p></div>
-      <div className="arch-diagram">{`Client (React/Next.js)
-        |
-   CloudFront (CDN, edge caching, WAF)
-        |
-   API Gateway (rate limiting, auth, CORS)
-        |
-   Lambda Functions (stateless, auto-scale)
-     /         \\         \\
-DynamoDB    ElastiCache   S3
-(main DB)   (Redis cache)  (static assets)
-        |
-   EventBridge → SQS → Lambda (async jobs)
-        |
-   CloudWatch (logs, metrics, alarms)
-   X-Ray (distributed tracing)`}</div>
-      <h3>Key Design Decisions</h3>
-      <ul>
-        <li><strong>Why Lambda?</strong> Auto-scales to zero, no server management, pay per invocation</li>
-        <li><strong>Why DynamoDB?</strong> Single-digit ms reads at any scale, serverless, multi-region</li>
-        <li><strong>Why CloudFront?</strong> Edge caching reduces Lambda invocations and global latency</li>
-        <li><strong>Security:</strong> Cognito for auth, WAF for OWASP, IAM least-privilege, KMS encryption at rest</li>
-        <li><strong>Observability:</strong> CloudWatch metrics/alarms, X-Ray tracing, structured JSON logging</li>
-      </ul>
-      <div className="highlight orange">
-        <p><strong>Tradeoff:</strong> Lambda cold starts (100-300ms) vs always-on ECS. Mitigation: provisioned concurrency for critical paths.</p>
-      </div>
+      <CardHeader title="Design: React Native App Architecture" tag="Your Stack" tagColor="green" />
+      <div className="highlight green"><p><strong>Play to your strength.</strong> Drive toward navigation architecture, offline-first patterns, performance, and OTA updates — areas where deep RN/Expo knowledge stands out.</p></div>
+      <Accordion title="High-Level Architecture" defaultOpen>
+        <div className="arch-diagram">{`┌─────────────────────────────────┐
+│         React Native App        │
+│  ┌──────────────────────────┐   │
+│  │  Expo Router / Navigation│   │  ← screen stack, tabs, modals
+│  ├──────────────────────────┤   │
+│  │  UI Layer (components)   │   │  ← NativeWind / StyleSheet
+│  ├──────────────────────────┤   │
+│  │  State Layer             │   │  ← Zustand (global) + React Query (server)
+│  ├──────────────────────────┤   │
+│  │  Data / Cache Layer      │   │  ← MMKV (fast local) + AsyncStorage
+│  └──────────────────────────┘   │
+└──────────────┬──────────────────┘
+               │ REST / GraphQL
+        ┌──────┴──────┐
+        │  Next.js /  │   ← API routes as BFF
+        │  Node API   │
+        └─────────────┘`}</div>
+      </Accordion>
+      <Accordion title="Navigation Architecture (Expo Router)">
+        <p>Expo Router uses file-based routing — same mental model as Next.js App Router.</p>
+        <CodeBlock>{`app/
+  _layout.tsx          ← root layout, auth guard here
+  (auth)/
+    login.tsx
+    register.tsx
+  (tabs)/
+    _layout.tsx        ← tab bar definition
+    index.tsx          ← Home tab
+    profile.tsx        ← Profile tab
+  post/
+    [id].tsx           ← dynamic route
+
+// Auth guard in root layout
+export default function RootLayout() {
+  const { session } = useAuth();
+  return (
+    <Stack>
+      {session ? <Stack.Screen name="(tabs)" /> : <Stack.Screen name="(auth)" />}
+    </Stack>
+  );
+}`}</CodeBlock>
+      </Accordion>
+      <Accordion title="State Management Strategy">
+        <div className="grid-2">
+          <div>
+            <h3>Server State → React Query</h3>
+            <ul>
+              <li>Remote data, loading/error states</li>
+              <li>Background refetch, stale-while-revalidate</li>
+              <li>Optimistic updates for likes/follows</li>
+              <li>Infinite queries for feeds</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Client State → Zustand</h3>
+            <ul>
+              <li>Auth session, user preferences</li>
+              <li>UI state (modals, selected tab)</li>
+              <li>Lightweight — no boilerplate</li>
+              <li>Persist to MMKV for offline</li>
+            </ul>
+          </div>
+        </div>
+        <CodeBlock>{`// React Query — infinite feed
+const { data, fetchNextPage } = useInfiniteQuery({
+  queryKey: ['feed'],
+  queryFn: ({ pageParam }) => fetchPosts(pageParam),
+  getNextPageParam: (last) => last.nextCursor,
+});
+
+// Optimistic like
+const mutation = useMutation({
+  mutationFn: likePost,
+  onMutate: async (postId) => {
+    await queryClient.cancelQueries({ queryKey: ['feed'] });
+    const prev = queryClient.getQueryData(['feed']);
+    queryClient.setQueryData(['feed'], (old) => toggleLike(old, postId));
+    return { prev };
+  },
+  onError: (_, __, ctx) => queryClient.setQueryData(['feed'], ctx.prev),
+});`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Performance Patterns">
+        <ul>
+          <li><strong>FlashList over FlatList:</strong> Recycling-based renderer — dramatically better on large lists (Instagram uses this)</li>
+          <li><strong>Image caching:</strong> <code>expo-image</code> with built-in memory + disk cache, blurhash placeholders</li>
+          <li><strong>Memo boundaries:</strong> <code>React.memo</code> on list item components — prevents full list re-renders on parent state change</li>
+          <li><strong>Avoid inline functions in JSX:</strong> New reference every render → breaks memo. Extract or use <code>useCallback</code>.</li>
+          <li><strong>Reanimated for animations:</strong> Runs on the UI thread — no JS bridge jank. Use for gestures, transitions.</li>
+          <li><strong>OTA updates:</strong> Expo Updates for JS bundle patches without App Store review. Keep native changes behind a store release.</li>
+        </ul>
+        <CodeBlock>{`// FlashList — drop-in FlatList replacement
+import { FlashList } from '@shopify/flash-list';
+
+<FlashList
+  data={posts}
+  renderItem={({ item }) => <PostCard post={item} />}
+  estimatedItemSize={200}    // key for perf — estimate your item height
+  onEndReached={fetchNextPage}
+  onEndReachedThreshold={0.5}
+/>`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Offline-First Strategy">
+        <p>Mobile users lose connectivity. Design around it, not against it.</p>
+        <ul>
+          <li><strong>MMKV:</strong> 10x faster than AsyncStorage. Use for auth tokens, user prefs, draft posts.</li>
+          <li><strong>React Query persistence:</strong> Persist the query cache to MMKV — stale data shown instantly on launch, then refetched in background.</li>
+          <li><strong>Optimistic updates:</strong> Apply changes to local cache immediately; reconcile on reconnect.</li>
+          <li><strong>NetInfo:</strong> <code>@react-native-community/netinfo</code> — detect connectivity and queue writes for when online.</li>
+        </ul>
+      </Accordion>
     </Card>
   ),
-  microservices: (
+  statemanage: (
     <Card>
-      <CardHeader title="Design: Microservices Architecture" tag="Enterprise Scale" tagColor="green" />
-      <div className="highlight"><p><strong>Prompt:</strong> "Break down a monolithic app into microservices. Ensure services are loosely coupled and independently deployable."</p></div>
-      <h3>Service Decomposition (by business domain)</h3>
-      <div className="grid-2">
+      <CardHeader title="Design: State Management at Scale" tag="React / Next.js" tagColor="orange" />
+      <div className="highlight"><p><strong>Core Rule:</strong> Split state by <em>who owns it</em>. Server state (remote data) and client state (UI) have completely different lifecycles — mixing them is where complexity explodes.</p></div>
+      <Accordion title="State Classification" defaultOpen>
+        <div className="arch-diagram">{`State Type      Source          Tool                  Example
+──────────────────────────────────────────────────────────────
+Server state    Remote API      React Query / SWR     posts, user profile
+Global UI       In-app          Zustand / Redux        auth, theme, cart
+Local UI        Component       useState / useReducer  modal open, form input
+URL state       Browser URL     useSearchParams        filters, pagination
+Form state      User input      React Hook Form        checkout form`}</div>
+        <p><strong>Biggest mistake:</strong> putting server data into Redux/Zustand and manually managing loading/error/stale states. React Query handles all of that for free.</p>
+      </Accordion>
+      <Accordion title="Decision Tree — Which Tool?">
+        <div className="arch-diagram">{`Is it data fetched from an API?
+└── YES → React Query (TanStack Query)
+    Handles: caching, deduplication, background refresh,
+             pagination, optimistic updates, error retry
+
+Is it shared across many components (not server data)?
+├── YES, complex (many slices, devtools needed) → Redux Toolkit
+└── YES, simple                                 → Zustand
+
+Is it only used within one component or its children?
+└── YES → useState / useReducer / Context
+
+Is it reflected in the URL (shareable, back-button aware)?
+└── YES → useSearchParams (Next.js) / URL state`}</div>
+      </Accordion>
+      <Accordion title="React Query — Patterns to Know">
+        <CodeBlock>{`// Basic query
+const { data, isLoading, error } = useQuery({
+  queryKey: ['user', userId],   // cache key — array for namespacing
+  queryFn: () => fetchUser(userId),
+  staleTime: 1000 * 60 * 5,    // data fresh for 5 min
+});
+
+// Dependent query (wait for userId before fetching)
+const { data: posts } = useQuery({
+  queryKey: ['posts', userId],
+  queryFn: () => fetchPosts(userId),
+  enabled: !!userId,            // don't run until userId exists
+});
+
+// Mutation with cache invalidation
+const mutation = useMutation({
+  mutationFn: updateProfile,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['user', userId] });
+    // ↑ marks cache stale → triggers background refetch
+  },
+});
+
+// Prefetch on hover (instant navigation feel)
+const queryClient = useQueryClient();
+<Link
+  onMouseEnter={() =>
+    queryClient.prefetchQuery({ queryKey: ['post', id], queryFn: () => fetchPost(id) })
+  }
+/>`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Zustand — Lightweight Global State">
+        <CodeBlock>{`import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+// Auth store — persisted to localStorage / MMKV
+const useAuthStore = create(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      login: (user, token) => set({ user, token }),
+      logout: () => set({ user: null, token: null }),
+    }),
+    { name: 'auth-storage' }  // storage key
+  )
+);
+
+// Usage
+const { user, login, logout } = useAuthStore();`}</CodeBlock>
+        <p><strong>Why Zustand over Context?</strong> Context re-renders every consumer on any state change. Zustand uses selectors — components only re-render when the slice they subscribe to changes.</p>
+        <CodeBlock>{`// Context — ALL consumers re-render when ANY value changes
+const { user, theme, cart } = useContext(AppContext); // bad at scale
+
+// Zustand — only re-renders when 'user' changes
+const user = useAuthStore((state) => state.user); // efficient`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Context API — When It's Fine">
+        <p>Context isn't bad — it's just misused. It's great for:</p>
         <ul>
-          <li><strong>User Service</strong> — auth, profile, preferences</li>
-          <li><strong>Product Service</strong> — catalog, search, inventory</li>
-          <li><strong>Order Service</strong> — order lifecycle, state machine</li>
-          <li><strong>Payment Service</strong> — PCI-DSS compliant, isolated</li>
+          <li><strong>Static or rarely-changing values</strong> — theme, locale, feature flags</li>
+          <li><strong>Dependency injection</strong> — passing a service/config down a subtree</li>
+          <li><strong>Compound components</strong> — sharing state between a parent and its direct children</li>
         </ul>
-        <ul>
-          <li><strong>Notification Service</strong> — email, SMS, push</li>
-          <li><strong>Analytics Service</strong> — event streaming, reporting</li>
-          <li><strong>API Gateway</strong> — routing, auth, rate limiting</li>
-          <li><strong>Service Mesh</strong> — Istio for inter-service security</li>
-        </ul>
-      </div>
-      <h3>Communication Patterns</h3>
-      <ul>
-        <li><strong>Synchronous (REST/gRPC)</strong>: User → Order (needs immediate response)</li>
-        <li><strong>Asynchronous (SQS/SNS)</strong>: Order → Notification (fire and forget)</li>
-        <li><strong>Event Streaming (Kafka/Kinesis)</strong>: analytics, audit logs, replay</li>
-      </ul>
-      <div className="highlight purple">
-        <p><strong>Patterns to mention:</strong> Saga (distributed transactions), Circuit Breaker (resilience), Outbox pattern (eventual consistency), Strangler Fig (migration from monolith).</p>
-      </div>
+        <p><strong>Avoid Context for:</strong> frequently updating state (form input, mouse position, real-time data) — every update re-renders all consumers.</p>
+      </Accordion>
     </Card>
   ),
-  eventdriven: (
+  socialfeed: (
     <Card>
-      <CardHeader title="Design: Event-Driven Architecture" tag="Modern Pattern" tagColor="purple" />
-      <div className="arch-diagram">{`Producer Services
-        |
-   EventBridge (event bus + routing rules)
-   /    |    \\
-SQS   SQS   SQS  (per consumer — decoupled)
- |     |     |
-Lambda Lambda Lambda  (consumers)
- |     |     |
-DB    DB    External API`}</div>
-      <h3>Core Concepts</h3>
-      <ul>
-        <li><strong>Events vs Commands:</strong> Events describe what happened ("OrderPlaced"). Commands tell something to do ("ProcessPayment").</li>
-        <li><strong>Idempotency:</strong> Consumers must handle duplicate events. Use idempotency keys.</li>
-        <li><strong>Dead Letter Queues (DLQ):</strong> For events that fail processing. Always configure with alerting.</li>
-        <li><strong>Event schema registry:</strong> AWS Glue Schema Registry to track event shapes.</li>
-        <li><strong>Ordering:</strong> SQS FIFO for strict ordering. Standard SQS for throughput.</li>
-      </ul>
-      <div className="highlight green">
-        <p><strong>Benefits vs Drawbacks:</strong> Benefits: loose coupling, independent scaling, resilience. Drawbacks: eventual consistency, harder debugging (use correlation IDs + distributed tracing).</p>
-      </div>
+      <CardHeader title="Design: Social Feed (Instagram-like)" tag="Relevant to Your Projects" tagColor="green" />
+      <div className="highlight green"><p><strong>Prompt:</strong> "Design the feed screen for a photo-sharing app. Users can post images, follow others, like posts, and scroll an infinite feed."</p></div>
+      <Accordion title="High-Level Architecture" defaultOpen>
+        <div className="arch-diagram">{`React Native App (Expo)
+  │
+  ├── Feed Screen
+  │     ├── FlashList (virtualized, infinite scroll)
+  │     ├── React Query useInfiniteQuery (cursor pagination)
+  │     └── Optimistic likes (local cache update before server confirms)
+  │
+  ├── Post Upload
+  │     ├── expo-image-picker → compress client-side
+  │     ├── Presigned S3 URL → upload direct from device (no server proxy)
+  │     └── POST /api/posts (metadata: caption, location, S3 key)
+  │
+  └── Real-time (likes/comments count)
+        └── Polling every 30s OR WebSocket for live updates
+
+Next.js API (BFF)
+  ├── GET  /api/feed?cursor=...   → paginated posts
+  ├── POST /api/posts             → create post (metadata to DB)
+  ├── POST /api/posts/:id/like    → toggle like
+  └── GET  /api/upload-url        → issue presigned S3 URL
+
+Data:
+  ├── PostgreSQL — users, posts, follows, likes (relational)
+  └── S3 + CloudFront CDN — image storage & delivery`}</div>
+      </Accordion>
+      <Accordion title="Feed Pagination — Cursor vs Offset">
+        <CodeBlock>{`// Cursor-based (use this for feeds — stable even as new posts arrive)
+GET /api/feed?limit=20&cursor=eyJpZCI6MTAwfQ==
+
+// Response
+{
+  "posts": [...],
+  "nextCursor": "eyJpZCI6ODB9",
+  "hasMore": true
+}
+
+// React Query infinite scroll
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ['feed'],
+  queryFn: ({ pageParam }) =>
+    fetch(\`/api/feed?cursor=\${pageParam}&limit=20\`).then(r => r.json()),
+  getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  initialPageParam: undefined,
+});
+
+// Trigger on scroll — FlashList onEndReached
+<FlashList
+  data={data?.pages.flatMap(p => p.posts)}
+  onEndReached={() => hasNextPage && fetchNextPage()}
+  onEndReachedThreshold={0.5}
+/>`}</CodeBlock>
+        <p><strong>Why cursor over offset?</strong> If someone posts while a user is scrolling, offset shifts — duplicates or skips items. Cursor anchors to a specific row ID.</p>
+      </Accordion>
+      <Accordion title="Image Upload — Presigned URL Pattern">
+        <div className="arch-diagram">{`Device                  Next.js API           S3
+  │                          │                  │
+  │  GET /api/upload-url     │                  │
+  │ ────────────────────────>│                  │
+  │                          │  generatePresignedUrl()
+  │                          │ ──────────────────>│
+  │   { url, key }           │                  │
+  │ <────────────────────────│                  │
+  │                          │                  │
+  │  PUT image directly to S3 (presigned URL)   │
+  │ ────────────────────────────────────────────>│
+  │                          │                  │
+  │  POST /api/posts { key, caption }            │
+  │ ────────────────────────>│                  │
+  │                          │  save metadata to DB`}</div>
+        <p><strong>Why presigned URLs?</strong> The image never passes through your server — saves bandwidth cost, reduces server load, and S3 handles large file uploads natively.</p>
+        <CodeBlock>{`// Client — compress before upload
+import * as ImageManipulator from 'expo-image-manipulator';
+
+const compressed = await ImageManipulator.manipulateAsync(
+  uri,
+  [{ resize: { width: 1080 } }],
+  { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+);
+
+// 1. Get presigned URL
+const { url, key } = await fetch('/api/upload-url').then(r => r.json());
+
+// 2. Upload direct to S3
+await fetch(url, { method: 'PUT', body: await fetch(compressed.uri).then(r => r.blob()) });
+
+// 3. Save post metadata
+await fetch('/api/posts', {
+  method: 'POST',
+  body: JSON.stringify({ key, caption }),
+});`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Optimistic Likes">
+        <p>Update the UI instantly — don't wait for the server. Roll back on error.</p>
+        <CodeBlock>{`const likeMutation = useMutation({
+  mutationFn: (postId) => fetch(\`/api/posts/\${postId}/like\`, { method: 'POST' }),
+  onMutate: async (postId) => {
+    // Cancel any outgoing refetches
+    await queryClient.cancelQueries({ queryKey: ['feed'] });
+    // Snapshot previous value for rollback
+    const prev = queryClient.getQueryData(['feed']);
+    // Optimistically toggle like in cache
+    queryClient.setQueryData(['feed'], (old) =>
+      old.pages.map(page => ({
+        ...page,
+        posts: page.posts.map(p =>
+          p.id === postId
+            ? { ...p, liked: !p.liked, likeCount: p.liked ? p.likeCount - 1 : p.likeCount + 1 }
+            : p
+        )
+      }))
+    );
+    return { prev };
+  },
+  onError: (_, __, ctx) => queryClient.setQueryData(['feed'], ctx.prev),
+  onSettled: () => queryClient.invalidateQueries({ queryKey: ['feed'] }),
+});`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Real-Time Updates — Polling vs WebSocket vs SSE">
+        <div className="grid-2">
+          <div>
+            <h3>Polling (simplest)</h3>
+            <ul>
+              <li>React Query <code>refetchInterval: 30000</code></li>
+              <li>Good for: like counts, comment counts</li>
+              <li>Trade-off: 30s delay, wasted requests</li>
+            </ul>
+            <h3 style={{ marginTop: 12 }}>SSE (Server-Sent Events)</h3>
+            <ul>
+              <li>Server pushes updates over HTTP</li>
+              <li>One-directional — good for notifications</li>
+              <li>Works through proxies/firewalls</li>
+            </ul>
+          </div>
+          <div>
+            <h3>WebSocket (real-time)</h3>
+            <ul>
+              <li>Bi-directional, persistent connection</li>
+              <li>Good for: live comments, DMs, presence</li>
+              <li>Trade-off: stateful — harder to scale horizontally (need sticky sessions or Redis pub/sub)</li>
+            </ul>
+          </div>
+        </div>
+        <div className="highlight orange" style={{ marginTop: 12 }}>
+          <p><strong>Interview tip:</strong> For a feed, polling every 30s is usually enough — users don't expect instant like count sync. Reserve WebSockets for DMs or live comment threads where real-time is the core feature.</p>
+        </div>
+      </Accordion>
     </Card>
   ),
   microfrontend: (
@@ -495,7 +778,7 @@ export default function SystemDesign({ onTopicDone, doneSections }) {
       }
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>System Design Prep</div>
-      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Tailored for cloud-native, serverless, and event-driven at enterprise scale</div>
+      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Tailored for React, React Native, and Next.js engineers</div>
       {CONTENT[active]}
       {!doneSections.has(active) ? (
         <button className="btn btn-primary" onClick={() => onTopicDone(active)}>Mark as Reviewed ✓</button>

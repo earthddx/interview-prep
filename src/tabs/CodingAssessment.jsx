@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Accordion from '../components/Accordion';
 import { Card, CardHeader } from '../components/Card';
 import { SidebarLayout, SidebarSection, SidebarItem } from '../components/SidebarLayout';
-import Timer from '../components/Timer';
 import CodeBlock from '../components/CodeBlock';
 
 const TOPICS = [
@@ -14,6 +13,9 @@ const TOPICS = [
   { id: 'async',      label: 'Async / Promises' },
   { id: 'oop',        label: 'OOP & Design Patterns' },
   { id: 'complexity', label: 'Complexity Analysis' },
+  { id: 'stackqueue', label: 'Stack & Queue' },
+  { id: 'heap',       label: 'Heap / Priority Queue' },
+  { id: 'lru',        label: 'LRU Cache' },
   { id: 'sorting',    label: 'Sorting & Searching' },
   { id: 'api',        label: 'REST API Design' },
   { id: 'testing',    label: 'Testing Strategies' },
@@ -106,6 +108,13 @@ function isAnagram(s, t) {
   linkedlist: (
     <Card>
       <CardHeader title="Linked Lists" tag="Medium Priority" tagColor="yellow" />
+      <Accordion title="What is a Linked List?" defaultOpen>
+        <p>A <strong>linked list</strong> is a linear data structure where each element (node) stores a value and a pointer to the next node. Unlike arrays, nodes are not stored contiguously in memory — each node lives wherever the allocator puts it, connected only by pointers.</p>
+        <p><strong>Singly linked:</strong> each node has <code>next</code>. <strong>Doubly linked:</strong> each node has <code>next</code> and <code>prev</code> (enables O(1) removal without traversal).</p>
+        <CodeBlock>{`// Singly: HEAD → [1|next] → [2|next] → [3|null]
+// Doubly: HEAD ↔ [1] ↔ [2] ↔ [3] ↔ TAIL`}</CodeBlock>
+        <p><strong>Why use it over an array?</strong> Inserting or deleting at the head/tail is O(1) — no shifting. Trade-off: no random access (must traverse from head), and extra memory per node for the pointer(s).</p>
+      </Accordion>
       <div className="highlight"><p><strong>Core Insight:</strong> Almost every linked list problem is solved with <strong>two pointers</strong> (fast/slow or left/right). Draw the pointer manipulation before coding — one wrong <code>.next</code> causes an infinite loop or null crash.</p></div>
       <Accordion title="Node structure & implementation" defaultOpen>
         <CodeBlock>{`class ListNode {
@@ -213,7 +222,24 @@ Search           O(n)           O(n)
   trees: (
     <Card>
       <CardHeader title="Trees & Graphs" tag="High Priority" tagColor="red" />
-      <Accordion title="BFS vs DFS — When to Use Each" defaultOpen>
+      <Accordion title="What are Trees & Graphs?" defaultOpen>
+        <p>A <strong>graph</strong> is a collection of <strong>nodes (vertices)</strong> connected by <strong>edges</strong>. It's the most general data structure for representing relationships — networks, maps, dependencies, social connections.</p>
+        <p>A <strong>tree</strong> is a restricted graph: connected, acyclic (no cycles), with one root node. Every tree is a graph, but not every graph is a tree.</p>
+        <CodeBlock>{`// Graph types:
+// Directed   — edges have direction (A → B, but not B → A)
+// Undirected — edges go both ways (A ↔ B)
+// Weighted   — edges have a cost/distance
+// Cyclic     — contains a cycle (can revisit a node)
+// DAG        — Directed Acyclic Graph (no cycles, used for dependencies)
+
+// Tree vocabulary:
+// Root    — top node, no parent
+// Leaf    — bottom node, no children
+// Height  — longest path from root to a leaf
+// BST     — Binary Search Tree: left < node < right at every node`}</CodeBlock>
+        <p><strong>Key difference from trees:</strong> graphs can have cycles, multiple paths between nodes, and disconnected components — so traversals always need a <code>visited</code> set.</p>
+      </Accordion>
+      <Accordion title="BFS vs DFS — When to Use Each">
         <div className="grid-2">
           <div>
             <h3>BFS (Queue)</h3>
@@ -238,6 +264,60 @@ Search           O(n)           O(n)
 }`}</CodeBlock>
           </div>
         </div>
+      </Accordion>
+      <Accordion title="Tree Traversal Orders (Pre / In / Post)">
+        <p>All three use the same <code>walk</code> skeleton — the only difference is <strong>where you push the value</strong> relative to the recursive calls.</p>
+        <CodeBlock>{`// PRE-ORDER: node → left → right
+// Use for: copying a tree, serialization, prefix expressions
+function pre_order_search(head) {
+  function walk(curr, path) {
+    if (!curr) return path;
+    path.push(curr.value);   // visit BEFORE recursing
+    walk(curr.left, path);
+    walk(curr.right, path);
+    return path;
+  }
+  return walk(head, []);
+}
+
+// IN-ORDER: left → node → right
+// Use for: BST → returns values in sorted (ascending) order
+function in_order_search(head) {
+  function walk(curr, path) {
+    if (!curr) return path;
+    walk(curr.left, path);
+    path.push(curr.value);   // visit BETWEEN left and right
+    walk(curr.right, path);
+    return path;
+  }
+  return walk(head, []);
+}
+
+// POST-ORDER: left → right → node
+// Use for: deleting a tree, evaluating expression trees (children before parent)
+function post_order_search(head) {
+  function walk(curr, path) {
+    if (!curr) return path;
+    walk(curr.left, path);
+    walk(curr.right, path);
+    path.push(curr.value);   // visit AFTER both children
+    return path;
+  }
+  return walk(head, []);
+}
+
+// Given tree:    4
+//               / \\
+//              2   6
+//             / \\ / \\
+//            1  3 5  7
+//
+// Pre-order:  [4, 2, 1, 3, 6, 5, 7]  ← root always first
+// In-order:   [1, 2, 3, 4, 5, 6, 7]  ← sorted! (BST only)
+// Post-order: [1, 3, 2, 5, 7, 6, 4]  ← root always last
+//
+// Time: O(n)  Space: O(h) call stack — h = tree height`}</CodeBlock>
+        <p><strong>Memory trick:</strong> the prefix describes when the <em>current node</em> is visited — <strong>pre</strong> = before children, <strong>in</strong> = between children, <strong>post</strong> = after children.</p>
       </Accordion>
       <Accordion title="BST Search — DFS (Recursive)" defaultOpen>
         <p>A Binary Search Tree is already sorted — at each node, go right if needle is larger, left if smaller. No need to visit both children.</p>
@@ -369,11 +449,219 @@ function invertTreeIterative(root: TreeNode | null): TreeNode | null {
           <li><strong>Is BST valid</strong> — pass min/max bounds recursively</li>
         </ul>
       </Accordion>
+      <Accordion title="Graph Representation — Adjacency List">
+        <p>Most interview graphs are given as an edge list or adjacency list. Build the list first, then traverse.</p>
+        <CodeBlock>{`// Build adjacency list from edge list
+// edges = [[0,1],[0,2],[1,3]]  →  undirected graph
+function buildGraph(n, edges) {
+  const graph = Array.from({ length: n }, () => []);
+  for (const [a, b] of edges) {
+    graph[a].push(b);
+    graph[b].push(a); // omit this line for directed graph
+  }
+  return graph;
+}
+
+// Adjacency matrix — O(1) edge lookup, O(V²) space
+// Only use when V is small (< 1000) or graph is dense
+const matrix = Array.from({ length: n }, () => Array(n).fill(0));
+matrix[a][b] = 1;
+matrix[b][a] = 1;`}</CodeBlock>
+        <p><strong>Rule of thumb:</strong> adjacency list = sparse graph (most interview problems). Matrix = dense graph or when you need fast "is there an edge from A to B?" lookups.</p>
+      </Accordion>
+      <Accordion title="DFS on a Graph (with cycle detection)">
+        <p>Unlike trees, graphs can have cycles — always track a <code>visited</code> set.</p>
+        <CodeBlock>{`// DFS — iterative with a stack (avoids call-stack overflow on large graphs)
+function dfs(graph, start) {
+  const visited = new Set();
+  const stack = [start];
+
+  while (stack.length) {
+    const node = stack.pop();
+    if (visited.has(node)) continue;
+    visited.add(node);
+
+    // process node here
+    console.log(node);
+
+    for (const neighbor of graph[node]) {
+      if (!visited.has(neighbor)) stack.push(neighbor);
+    }
+  }
+}
+
+// DFS — recursive (cleaner, but O(V) call stack depth)
+function dfsRecursive(graph, node, visited = new Set()) {
+  if (visited.has(node)) return;
+  visited.add(node);
+  // process node
+  for (const neighbor of graph[node]) {
+    dfsRecursive(graph, neighbor, visited);
+  }
+}
+// Time: O(V + E)  Space: O(V)`}</CodeBlock>
+      </Accordion>
+      <Accordion title="BFS on a Graph (shortest path)">
+        <p>BFS on an unweighted graph gives the shortest path in terms of number of edges.</p>
+        <CodeBlock>{`// Returns shortest distance from start to every reachable node
+function bfs(graph, start) {
+  const visited = new Set([start]);
+  const queue = [start];
+  const dist = { [start]: 0 };
+
+  while (queue.length) {
+    const node = queue.shift();
+
+    for (const neighbor of graph[node]) {
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        dist[neighbor] = dist[node] + 1;
+        queue.push(neighbor);
+      }
+    }
+  }
+  return dist;
+}
+
+// Has path from src to dst?
+function hasPath(graph, src, dst) {
+  const visited = new Set();
+  const queue = [src];
+  while (queue.length) {
+    const node = queue.shift();
+    if (node === dst) return true;
+    if (visited.has(node)) continue;
+    visited.add(node);
+    for (const n of graph[node]) queue.push(n);
+  }
+  return false;
+}
+// Time: O(V + E)  Space: O(V)`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Classic Graph Problems">
+        <p><strong>Number of Islands</strong> — flood-fill DFS on a grid (2D graph):</p>
+        <CodeBlock>{`function numIslands(grid) {
+  let count = 0;
+  const rows = grid.length, cols = grid[0].length;
+
+  function sink(r, c) {
+    if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '0') return;
+    grid[r][c] = '0'; // mark visited by sinking
+    sink(r+1,c); sink(r-1,c); sink(r,c+1); sink(r,c-1);
+  }
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] === '1') { count++; sink(r, c); }
+    }
+  }
+  return count;
+}
+// Time: O(m×n)  Space: O(m×n) call stack worst case`}</CodeBlock>
+        <p><strong>Connected Components</strong> — count groups in an undirected graph:</p>
+        <CodeBlock>{`function countComponents(n, edges) {
+  const graph = buildGraph(n, edges); // see adjacency list above
+  const visited = new Set();
+  let components = 0;
+
+  function dfs(node) {
+    if (visited.has(node)) return;
+    visited.add(node);
+    for (const neighbor of graph[node]) dfs(neighbor);
+  }
+
+  for (let i = 0; i < n; i++) {
+    if (!visited.has(i)) { dfs(i); components++; }
+  }
+  return components;
+}`}</CodeBlock>
+        <ul style={{ marginTop: 12 }}>
+          <li><strong>Topological sort</strong> — DFS post-order on a DAG (course schedule)</li>
+          <li><strong>Cycle detection</strong> — track a "in-progress" set alongside visited; if you hit an in-progress node, there's a cycle</li>
+          <li><strong>Dijkstra</strong> — shortest path on a <em>weighted</em> graph; use a min-heap</li>
+        </ul>
+      </Accordion>
+      <Accordion title="Maze Solver — Recursive DFS with Backtracking">
+        <p>A 2D grid is just a graph where each cell has up to 4 neighbors. The key addition here is <strong>backtracking</strong> — <code>path.pop()</code> in the post step undoes a dead-end so only the successful path remains.</p>
+        <CodeBlock>{`const dir = [
+  [-1, 0], // up
+  [ 1, 0], // down
+  [ 0,-1], // left
+  [ 0, 1], // right
+];
+
+function walk(maze, wall, curr, end, seen, path) {
+  // Base cases — return false to trigger backtrack
+  if (curr.x < 0 || curr.x >= maze[0].length ||
+      curr.y < 0 || curr.y >= maze.length) {
+    return false; // off the map
+  }
+  if (maze[curr.y][curr.x] === wall) return false; // hit a wall
+  if (seen[curr.y][curr.x])          return false; // already visited
+
+  // Found the exit
+  if (curr.x === end.x && curr.y === end.y) {
+    path.push(end);
+    return true;
+  }
+
+  // Pre: mark visited and add to candidate path
+  seen[curr.y][curr.x] = true;
+  path.push(curr);
+
+  // Recurse in all 4 directions
+  for (const [x, y] of dir) {
+    if (walk(maze, wall, { x: curr.x + x, y: curr.y + y }, end, seen, path)) {
+      return true; // found — propagate success up the call stack
+    }
+  }
+
+  // Post: dead end — remove this cell from the path (backtrack)
+  path.pop();
+  return false;
+}
+
+function mazeSolve(maze, wall, start, end) {
+  const seen = maze.map(row => new Array(row.length).fill(false));
+  const path = [];
+  walk(maze, wall, start, end, seen, path);
+  return path; // empty array if no solution
+}
+
+// Usage
+const maze = [
+  "########",
+  "#S     #",
+  "# #### #",
+  "#    # #",
+  "#### # #",
+  "#      E",  // E = end position
+  "########",
+];
+mazeSolve(maze, "#", { x:1, y:1 }, { x:7, y:5 });
+// Time: O(V+E) = O(rows × cols)  Space: O(rows × cols) for seen + call stack`}</CodeBlock>
+        <p><strong>Why <code>path.pop()</code> works:</strong> DFS explores one direction fully before trying the next. If it bottoms out without reaching the end, the post step removes the dead-end cells — so by the time the recursion unwinds to the correct branch, <code>path</code> only contains cells on the winning route.</p>
+        <p><strong>vs Number of Islands:</strong> Islands uses flood-fill (mark and never undo) — it just <em>counts</em> regions. Maze solver needs the actual path, so it <em>backtracks</em> on failure.</p>
+      </Accordion>
     </Card>
   ),
   dp: (
     <Card>
       <CardHeader title="Dynamic Programming" tag="High Priority" tagColor="red" />
+      <Accordion title="What is Dynamic Programming?" defaultOpen>
+        <p><strong>Dynamic Programming</strong> is an optimization technique for problems that have <strong>overlapping subproblems</strong> and <strong>optimal substructure</strong> — meaning the problem can be broken into smaller subproblems whose solutions combine to give the overall answer, and those subproblems repeat.</p>
+        <p>The key idea: <strong>cache results so you never compute the same subproblem twice.</strong></p>
+        <CodeBlock>{`// Without DP — fib(5) recomputes fib(3) twice, fib(2) three times...
+// Time: O(2^n) — exponential
+
+// With DP (memoization) — each subproblem computed once, result stored
+// Time: O(n)  Space: O(n)
+
+// Two approaches:
+// Top-down (memoization) — recursive + cache. Natural to write, starts from the big problem.
+// Bottom-up (tabulation)  — iterative + array. Fills smallest subproblems first, no call stack.`}</CodeBlock>
+        <p><strong>How to spot a DP problem:</strong> the problem asks for a count, min, max, or boolean over all possibilities, and brute force would explore exponential combinations (e.g. "how many ways...", "minimum cost to...", "can you reach...").</p>
+      </Accordion>
       <div className="highlight orange"><p><strong>DP Framework:</strong> (1) Define subproblem. (2) Find recurrence. (3) Identify base cases. (4) Choose memoization or tabulation.</p></div>
       <Accordion title="Core Patterns to Know" defaultOpen>
         <CodeBlock>{`// 1. Fibonacci (top-down memoization)
@@ -476,6 +764,406 @@ async function retry(fn, retries = 3, delay = 1000) {
           ].map(([op,ds,t,s]) => <tr key={op+ds}><td>{op}</td><td>{ds}</td><td>{t}</td><td>{s}</td></tr>)}
         </tbody>
       </table>
+    </Card>
+  ),
+  heap: (
+    <Card>
+      <CardHeader title="Heap / Priority Queue" tag="High Priority" tagColor="red" />
+      <Accordion title="What is a Min Heap?" defaultOpen>
+        <p>A <strong>heap</strong> is a complete binary tree that satisfies the <strong>heap property</strong>: in a min-heap, every parent node is <em>smaller than or equal to</em> its children. This guarantees the minimum element is always at the root.</p>
+        <p>It is <em>not</em> a sorted structure — siblings have no defined order relative to each other. The only guarantee is parent ≤ children at every level.</p>
+        <p><strong>Why use it?</strong> When you repeatedly need to access the smallest (or largest) element efficiently — like a priority queue, scheduling system, or Dijkstra's algorithm. Inserting and removing are both O(log n), and reading the min is O(1).</p>
+        <CodeBlock>{`// Min-heap property:
+//        1          ← always the minimum
+//       / \\
+//      3   2        ← smaller than their children
+//     / \\ / \\
+//    7  6 5  4     ← order between siblings doesn't matter`}</CodeBlock>
+      </Accordion>
+      <div className="highlight"><p><strong>Core Insight:</strong> A heap is a <strong>complete binary tree stored in an array</strong>. No node pointers needed — parent/child positions are derived from the index. A min-heap guarantees the <em>smallest</em> element is always at index 0.</p></div>
+      <Accordion title="Array Index Formulas" defaultOpen>
+        <CodeBlock>{`// For a node at index i:
+parent(i)      = Math.floor((i - 1) / 2)
+leftChild(i)   = i * 2 + 1
+rightChild(i)  = i * 2 + 2
+
+// Example — array: [1, 3, 2, 7, 6, 5, 4]
+//                        1          ← index 0
+//                      /   \\
+//                     3     2       ← index 1, 2
+//                    / \\   / \\
+//                   7   6 5   4    ← index 3, 4, 5, 6`}</CodeBlock>
+      </Accordion>
+      <Accordion title="MinHeap Implementation">
+        <CodeBlock>{`class MinHeap {
+  public length: number;
+  private data: number[];
+
+  constructor() {
+    this.data = [];
+    this.length = 0;
+  }
+
+  // O(log n) — insert at end, bubble up
+  insert(value: number): void {
+    this.data[this.length] = value;
+    this.heapifyUp(this.length);
+    this.length++;
+  }
+
+  // O(log n) — remove root (min), replace with last element, sink down
+  // also called poll() or pop()
+  delete(): number | undefined {
+    if (this.length === 0) return undefined;
+
+    const out = this.data[0];
+    this.length--;
+
+    if (this.length === 0) {
+      this.data = [];
+      return out;
+    }
+
+    this.data[0] = this.data[this.length]; // move last → root
+    this.heapifyDown(0);
+    return out;
+  }
+
+  // Sink down: swap with the SMALLER child until heap property restored
+  private heapifyDown(idx: number): void {
+    const lIdx = idx * 2 + 1;
+    const rIdx = idx * 2 + 2;
+
+    if (lIdx >= this.length) return; // no children — done
+
+    const lV = this.data[lIdx];
+    const rV = this.data[rIdx];
+    const v  = this.data[idx];
+
+    if (lV > rV && v > rV) {
+      // right child is smallest — swap right
+      this.data[idx]  = rV;
+      this.data[rIdx] = v;
+      this.heapifyDown(rIdx);
+    } else if (rV > lV && v > lV) {
+      // left child is smallest — swap left
+      this.data[idx]  = lV;
+      this.data[lIdx] = v;
+      this.heapifyDown(lIdx);
+    }
+    // if v is already smallest, stop
+  }
+
+  // Bubble up: swap with parent until parent is smaller (or we're at root)
+  private heapifyUp(idx: number): void {
+    if (idx === 0) return;
+
+    const p       = Math.floor((idx - 1) / 2);
+    const parentV = this.data[p];
+    const v       = this.data[idx];
+
+    if (parentV > v) {
+      this.data[idx] = parentV;
+      this.data[p]   = v;
+      this.heapifyUp(p);
+    }
+  }
+}
+
+// Usage
+const heap = new MinHeap();
+heap.insert(5); heap.insert(3); heap.insert(8); heap.insert(1);
+heap.delete(); // → 1  (always the minimum)
+heap.delete(); // → 3`}</CodeBlock>
+      </Accordion>
+      <Accordion title="heapifyUp vs heapifyDown">
+        <CodeBlock>{`insert → heapifyUp
+  New element placed at the END (bottom of tree)
+  Bubbles UP by swapping with parent while parent > child
+  Stops when parent ≤ child, or reaches root
+
+delete → heapifyDown
+  Root (minimum) is removed and returned
+  Last element moved to ROOT to fill the gap
+  Sinks DOWN by swapping with the SMALLER child while child < parent
+  Stops when both children are larger, or no children remain`}</CodeBlock>
+        <p><strong>Why smaller child?</strong> If you swap with the larger child, that larger value becomes the new parent — violating the heap property for the other subtree. Always swap with the child that will maintain the min-heap invariant.</p>
+      </Accordion>
+      <Accordion title="When to reach for a Heap">
+        <ul>
+          <li><strong>Top-K elements</strong> — keep a max-heap of size K; O(n log k)</li>
+          <li><strong>K closest points</strong> — same pattern, compare by distance</li>
+          <li><strong>Merge K sorted lists</strong> — min-heap of (value, listIndex)</li>
+          <li><strong>Dijkstra</strong> — min-heap on (distance, node)</li>
+          <li><strong>Median of data stream</strong> — two heaps: max-heap (left half) + min-heap (right half)</li>
+        </ul>
+        <CodeBlock>{`// Complexity summary
+insert   O(log n)
+delete   O(log n)  ← always removes the min (or max for max-heap)
+peek     O(1)      ← just read index 0
+build    O(n)      ← heapify all elements at once (not n × insert)`}</CodeBlock>
+      </Accordion>
+    </Card>
+  ),
+  lru: (
+    <Card>
+      <CardHeader title="LRU Cache" tag="High Priority" tagColor="red" />
+      <Accordion title="What is an LRU Cache?" defaultOpen>
+        <p>An <strong>LRU (Least Recently Used) Cache</strong> is a fixed-capacity data structure that evicts the least recently accessed item when it becomes full. It answers the question: <em>"Of the items I'm holding, which one hasn't been used in the longest time — and should be dropped first?"</em></p>
+        <p><strong>Real-world uses:</strong> browser page cache, CPU memory cache, database query cache, CDN edge caches.</p>
+        <p><strong>The contract:</strong></p>
+        <ul>
+          <li><code>get(key)</code> — return the value if it exists, and mark it as most recently used</li>
+          <li><code>update(key, value)</code> — insert or update a value; if over capacity, evict the least recently used item first</li>
+        </ul>
+        <p><strong>Why this data structure?</strong> You need O(1) lookup (HashMap) <em>and</em> O(1) reordering when something is accessed (Doubly Linked List). Neither structure alone can do both — combining them gives you all operations in O(1).</p>
+      </Accordion>
+      <div className="highlight"><p><strong>Core Insight:</strong> Combine a <strong>HashMap</strong> (O(1) lookup) with a <strong>Doubly Linked List</strong> (O(1) insert/remove). Most-recently-used items live at the <code>head</code>; the eviction candidate is always at the <code>tail</code>. Two maps let you go node→key and key→node in O(1).</p></div>
+      <Accordion title="Data Structure Design" defaultOpen>
+        <CodeBlock>{`// Why doubly linked list?
+// Singly linked: to remove a node you need its predecessor → O(n)
+// Doubly linked: node.prev gives the predecessor directly → O(1)
+
+// Why two Maps?
+// lookup:        key   → node   (for get / update)
+// reverseLookup: node  → key    (for eviction — trimCache needs the key to clean up both maps)
+
+//  HEAD ←→ [most recent] ←→ ... ←→ [least recent] ←→ TAIL
+//  ↑                                                    ↑
+//  next access moves here                        evicted from here`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Full Implementation (TypeScript)">
+        <CodeBlock>{`type Node<T> = {
+  value: T,
+  next?: Node<T>,
+  prev?: Node<T>,
+}
+
+function createNode<V>(value: V): Node<V> {
+  return { value };
+}
+
+export default class LRU<K, V> {
+  private length: number;
+  private head?: Node<V>;
+  private tail?: Node<V>;
+  private lookup: Map<K, Node<V>>;
+  private reverseLookup: Map<Node<V>, K>;
+
+  constructor(private capacity: number = 10) {
+    this.length = 0;
+    this.head = this.tail = undefined;
+    this.lookup = new Map<K, Node<V>>();
+    this.reverseLookup = new Map<Node<V>, K>();
+  }
+
+  update(key: K, value: V): void {
+    let node = this.lookup.get(key);
+    if (!node) {
+      // Key doesn't exist — create, prepend, then evict if over capacity
+      node = createNode(value);
+      this.length++;
+      this.prepend(node);
+      this.trimCache();
+      this.lookup.set(key, node);
+      this.reverseLookup.set(node, key);
+    } else {
+      // Key exists — move to front (most recent) and update value
+      this.detach(node);
+      this.prepend(node);
+      node.value = value;
+    }
+  }
+
+  get(key: K): V | undefined {
+    const node = this.lookup.get(key);
+    if (!node) return undefined;
+    // Accessing counts as "recently used" — move to front
+    this.detach(node);
+    this.prepend(node);
+    return node.value;
+  }
+
+  // Remove a node from its current position in the list
+  private detach(node: Node<V>): void {
+    if (node.prev) node.prev.next = node.next;
+    if (node.next) node.next.prev = node.prev;
+
+    if (this.head === node) this.head = this.head.next;
+    if (this.tail === node) this.tail = this.tail.prev;
+    if (this.length === 1)  this.tail = this.head = undefined;
+
+    node.next = undefined;
+    node.prev = undefined;
+  }
+
+  // Insert a node at the front (most recently used position)
+  private prepend(node: Node<V>): void {
+    if (!this.head) {
+      this.head = this.tail = node;
+      return;
+    }
+    node.next = this.head;
+    this.head.prev = node;
+    this.head = node;
+  }
+
+  // Evict the least recently used item (tail) if over capacity
+  private trimCache(): void {
+    if (this.length <= this.capacity) return;
+    const tail = this.tail as Node<V>;
+    this.detach(tail);
+    const key = this.reverseLookup.get(tail) as K;
+    this.lookup.delete(key);
+    this.reverseLookup.delete(tail);
+    this.length--;
+  }
+}`}</CodeBlock>
+      </Accordion>
+      <Accordion title="Operation Walkthrough">
+        <CodeBlock>{`// capacity = 3
+// update(A,1) → HEAD [A] TAIL
+// update(B,2) → HEAD [B] ↔ [A] TAIL
+// update(C,3) → HEAD [C] ↔ [B] ↔ [A] TAIL
+// get(A)      → HEAD [A] ↔ [C] ↔ [B] TAIL   ← A moved to front
+// update(D,4) → HEAD [D] ↔ [A] ↔ [C] TAIL   ← B evicted (was tail)`}</CodeBlock>
+        <p><strong>detach then prepend</strong> is the core move — used in both <code>get</code> and <code>update</code>. It's what makes any access "most recent".</p>
+      </Accordion>
+      <Accordion title="Complexity">
+        <CodeBlock>{`Operation   Time    Why
+─────────────────────────────────────────────
+get         O(1)    HashMap lookup + O(1) list ops
+update      O(1)    Same — detach + prepend + map set
+eviction    O(1)    Tail is always the LRU candidate
+Space       O(n)    n = capacity (both maps + list)`}</CodeBlock>
+        <p><strong>Interview tip:</strong> If asked "why not just use an array?", arrays are O(n) to remove from the middle. The doubly linked list makes detach O(1) because each node knows its own neighbors.</p>
+      </Accordion>
+    </Card>
+  ),
+  stackqueue: (
+    <Card>
+      <CardHeader title="Stack & Queue" tag="Medium Priority" tagColor="yellow" />
+      <Accordion title="What are Stacks & Queues?" defaultOpen>
+        <p>Both are <strong>linear, ordered collections</strong> that restrict where you can insert and remove — the difference is which end.</p>
+        <p>A <strong>Stack</strong> is <strong>LIFO</strong> — Last In, First Out. Think of a stack of plates: you add and remove from the top only. The last item pushed is the first item popped.</p>
+        <p>A <strong>Queue</strong> is <strong>FIFO</strong> — First In, First Out. Think of a queue at a register: new items join at the back, items leave from the front. The first item enqueued is the first item dequeued.</p>
+        <CodeBlock>{`// Stack — last in, first out
+push(1) push(2) push(3)
+pop() → 3   pop() → 2   pop() → 1
+
+// Queue — first in, first out
+enqueue(1) enqueue(2) enqueue(3)
+dequeue() → 1   dequeue() → 2   dequeue() → 3`}</CodeBlock>
+        <p><strong>When to use each:</strong> Stack → DFS, undo/redo, call stack simulation, balanced brackets. Queue → BFS, task scheduling, anything that must be processed in arrival order.</p>
+      </Accordion>
+      <div className="highlight"><p><strong>Core Insight:</strong> Both are implemented as a singly-linked list — a Stack uses <strong>LIFO</strong> (insert/remove at the head) and a Queue uses <strong>FIFO</strong> (insert at tail, remove from head). No array shifting = O(1) for every operation.</p></div>
+      <Accordion title="Stack — LIFO (TypeScript)" defaultOpen>
+        <p>Push and pop both operate on <code>head</code>. Each node points <strong>back</strong> via <code>prev</code>.</p>
+        <CodeBlock>{`type Node<T> = {
+  value: T,
+  prev?: Node<T>,
+}
+
+export default class Stack<T> {
+  public length: number;
+  private head?: Node<T>;
+
+  constructor() {
+    this.head = undefined;
+    this.length = 0;
+  }
+
+  push(item: T): void {
+    const node = { value: item } as Node<T>;
+    this.length++;
+    if (!this.head) {
+      this.head = node;
+      return;
+    }
+    node.prev = this.head; // new node points back to old head
+    this.head = node;      // new node becomes head
+  }
+
+  pop(): T | undefined {
+    this.length = Math.max(0, this.length - 1);
+    if (this.length === 0) {
+      const head = this.head;
+      this.head = undefined;
+      return head?.value;
+    }
+    const head = this.head as Node<T>;
+    this.head = head.prev; // walk back one node
+    return head.value;
+  }
+
+  peek(): T | undefined {
+    return this.head?.value;
+  }
+}
+// push / pop / peek — all O(1)  Space: O(n)`}</CodeBlock>
+        <p><strong>Use for:</strong> undo/redo, call stack simulation, balanced parentheses, DFS iterative, monotonic stack problems.</p>
+      </Accordion>
+      <Accordion title="Queue — FIFO (TypeScript)">
+        <p>Enqueue at <code>tail</code>, dequeue from <code>head</code>. Nodes point <strong>forward</strong> via <code>next</code>.</p>
+        <CodeBlock>{`type Node<T> = {
+  value: T,
+  next?: Node<T>,
+}
+
+export default class Queue<T> {
+  public length: number;
+  private head: Node<T> | undefined;
+  private tail?: Node<T>;
+
+  constructor() {
+    this.head = this.tail = undefined;
+    this.length = 0;
+  }
+
+  enqueue(item: T): void {
+    const node = { value: item } as Node<T>;
+    this.length++;
+    if (!this.tail) {
+      this.tail = this.head = node; // first item — head and tail are the same
+      return;
+    }
+    this.tail.next = node; // link old tail forward to new node
+    this.tail = node;      // advance tail
+  }
+
+  dequeue(): T | undefined {
+    if (!this.head) return undefined;
+
+    this.length--;
+    const head = this.head;
+    this.head = this.head.next; // advance head
+    head.next = undefined;      // free the reference (GC friendly)
+
+    if (this.length === 0) {
+      this.tail = undefined; // both head and tail are gone
+    }
+    return head.value;
+  }
+
+  peek(): T | undefined {
+    return this.head?.value;
+  }
+}
+// enqueue / dequeue / peek — all O(1)  Space: O(n)`}</CodeBlock>
+        <p><strong>Use for:</strong> BFS, task scheduling, sliding window problems, rate limiting.</p>
+      </Accordion>
+      <Accordion title="Stack vs Queue — Key Differences">
+        <CodeBlock>{`Operation     Stack (LIFO)         Queue (FIFO)
+──────────────────────────────────────────────
+Insert        push → head          enqueue → tail
+Remove        pop  ← head          dequeue ← head
+Peek          head                 head
+Pointer dir   node.prev            node.next
+Mental model  stack of plates      line at a register
+
+Stack traversal order:  last in, first out  → DFS
+Queue traversal order:  first in, first out → BFS`}</CodeBlock>
+      </Accordion>
     </Card>
   ),
   sorting: (
@@ -635,23 +1323,52 @@ Accept: application/vnd.myapp.v2+json
 GET /api/users?version=2`}</CodeBlock>
         <p>Bump the version on any <strong>breaking change</strong>: removing a field, renaming a field, changing a type, altering behaviour. Additive changes (new optional fields) don't need a bump.</p>
       </Accordion>
-      <Accordion title="Pagination">
-        <p><strong>Cursor-based</strong> (preferred for production):</p>
-        <CodeBlock>{`GET /posts?limit=20&cursor=eyJpZCI6MTAwfQ==
+      <Accordion title="Pagination — Offset vs Cursor">
+        <p><strong>Offset</strong> tells the DB: "skip the first N rows, return the next 20." Simple, but fragile when data changes between page loads.</p>
+        <CodeBlock>{`GET /posts?limit=20&offset=0   → rows 1–20
+GET /posts?limit=20&offset=20  → rows 21–40
 
-// Response
+// DB query: SELECT * FROM posts ORDER BY id DESC LIMIT 20 OFFSET 20
+
+// THE BUG — data shifts while you paginate:
+// User loads page 1  → [Post A, Post B ... Post T]
+// Someone posts Post X → pushes everything down by 1
+// User loads page 2  → offset=20 → [Post T, Post U ...]
+//                                      ↑ Post T was already on page 1!
+// Result: duplicate items (or skipped items on delete)`}</CodeBlock>
+
+        <p><strong>Cursor</strong> tells the DB: "give me 20 rows that come <em>after</em> this specific item." The cursor is usually a base64-encoded ID or timestamp of the last item received — it anchors to a stable row regardless of inserts.</p>
+        <CodeBlock>{`GET /posts?limit=20                       → first 20, server returns cursor
+GET /posts?limit=20&cursor=eyJpZCI6MTAwfQ==  → next 20 after post id=100
+
+// DB query: SELECT * FROM posts WHERE id < :cursorId ORDER BY id DESC LIMIT 20
+//           ↑ index seek — fast at any scale, no full table scan
+
+// Response shape
 {
   "data": [...],
   "pagination": {
-    "nextCursor": "eyJpZCI6MTIwfQ==",
+    "nextCursor": "eyJpZCI6ODB9",  // base64({ id: 80 })
     "hasMore": true
   }
 }`}</CodeBlock>
-        <p><strong>Offset-based</strong> (simpler but fragile):</p>
-        <CodeBlock>{`GET /posts?limit=20&offset=40
-// Problem: if a row is inserted on page 1 while reading page 2,
-// you skip or duplicate a record.`}</CodeBlock>
-        <p>Use cursor-based when data changes frequently. Use offset for admin UIs where "jump to page N" matters.</p>
+
+        <p>New posts arriving never shift the cursor's position — page 2 always starts exactly after the last item you saw on page 1.</p>
+
+        <table>
+          <thead><tr><th></th><th>Offset</th><th>Cursor</th></tr></thead>
+          <tbody>
+            <tr><td>Data shifts during scroll</td><td>Duplicates / skips</td><td>Stable</td></tr>
+            <tr><td>Jump to page 47</td><td>✅</td><td>❌ (walk forward only)</td></tr>
+            <tr><td>DB performance (large table)</td><td>Slow — scans N rows</td><td>Fast — indexed seek</td></tr>
+            <tr><td>Implementation complexity</td><td>Simple</td><td>Slightly more work</td></tr>
+            <tr><td>Use for</td><td>Admin tables, search</td><td>Feeds, timelines, chats</td></tr>
+          </tbody>
+        </table>
+
+        <div className="highlight orange" style={{ marginTop: 12 }}>
+          <p><strong>Interview tip:</strong> Always lead with cursor for any feed or timeline. Mention offset's page-jump advantage so the interviewer knows you understand the tradeoff — then explain why feeds don't need page jumping so cursor wins there.</p>
+        </div>
       </Accordion>
       <Accordion title="Consistent error format">
         <p>Every error response should have the same shape so clients can handle them generically.</p>
@@ -718,7 +1435,6 @@ export default function CodingAssessment({ onTopicDone, doneSections }) {
           </SidebarSection>
         </>
       }
-      timer={<Timer defaultMinutes={30} />}
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>Coding Assessment Prep</div>
       <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Focus: data structures, algorithms, and clean code communication</div>

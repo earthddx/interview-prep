@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Accordion from '../components/Accordion';
 import { Card, CardHeader } from '../components/Card';
 import { SidebarLayout, SidebarSection, SidebarItem } from '../components/SidebarLayout';
-import Timer from '../components/Timer';
 import CodeBlock from '../components/CodeBlock';
 
 const TOPICS = [
@@ -872,7 +871,6 @@ export default function JSReact({ onTopicDone, doneSections }) {
           </SidebarSection>
         </>
       }
-      timer={<Timer defaultMinutes={20} />}
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>JavaScript & React Deep Dive</div>
       <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Your core proficiency — own this section confidently. JS runtime, React internals, full-stack patterns.</div>

@@ -16,8 +16,6 @@
 .sidebarClose { display: none; }
 .overlay { display: none; }
 .mobileBar { display: none; }
-.mobileTimer { display: none; }
-.sidebarTimerSection { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
 
 @media (max-width: 768px) {
   .layout { display: block; }
@@ -42,17 +40,6 @@
     font-weight: 500;
     cursor: pointer;
     flex-shrink: 0;
-  }
-
-  .mobileTimer {
-    display: flex;
-    align-items: center;
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 12px;
-    min-width: 0;
   }
 
   .sidebar {
