@@ -9,6 +9,7 @@ const TOPICS = [
   { id: 'collab',     label: 'Collaboration & Communication' },
   { id: 'technical',  label: 'Technical Decision Making' },
   { id: 'challenges', label: 'Handling Challenges' },
+  { id: 'frontend',   label: 'Frontend Craft Questions' },
   { id: 'agile',      label: 'Agile & DevSecOps Experience' },
   { id: 'questions',  label: 'Questions to Ask Them' },
 ];
@@ -19,6 +20,8 @@ const STAR_PROMPTS = {
   process: "Tell me about a process improvement you drove — in CI/CD, code quality, or team workflow.",
   conflict: "How did you handle a technical disagreement with a teammate or manager? What was the outcome?",
   learn: "Describe a time you had to learn a new technology or language quickly to deliver a project.",
+  perf: "Tell me about a time you identified and fixed a significant performance problem in a frontend application.",
+  statearch: "Describe a time you made a significant architectural decision on the frontend and how it played out.",
 };
 
 function StarBuilder() {
@@ -45,6 +48,8 @@ function StarBuilder() {
           <option value="process">Process improvement you drove</option>
           <option value="conflict">Technical disagreement</option>
           <option value="learn">Learning a new technology quickly</option>
+          <option value="perf">Frontend performance improvement</option>
+          <option value="statearch">Frontend architecture decision</option>
         </select>
       </div>
       {story && <div className="highlight" style={{ marginBottom: 14 }}><p>{STAR_PROMPTS[story]}</p></div>}
@@ -92,6 +97,22 @@ const STAR_EXAMPLES = [
     T: 'Nobody had formally been asked to fix this, but it was clearly a risk. I took ownership of designing and rolling out a CI/CD security baseline across all 11 repositories.',
     A: 'I mapped out the risk surface first: no pre-commit hooks, no secret scanning, no SAST, dependency updates manual and infrequent. I introduced detect-secrets as a pre-commit hook (preventing commits containing credentials), added Trivy for container scanning and npm audit to the GitHub Actions pipeline as a required check, and configured Dependabot for weekly automated dependency PRs. I wrote a one-page ADR explaining each decision and ran a 30-minute team demo. To avoid slowing the team down, I made the pipeline fail fast — secret scan and lint ran first, heavier SAST ran in parallel.',
     R: 'Zero secret leaks in the 8 months following rollout. CI feedback time dropped by 2 minutes (parallelisation). Dependabot caught and auto-merged 3 high-severity CVE patches before they were even discussed in a team meeting. The approach was adopted by a second team after they saw the results.',
+  },
+  {
+    title: 'Improved React app performance (frontend)',
+    prompt: '"Tell me about a time you identified and fixed a significant performance problem in a frontend application."',
+    S: 'Our Next.js marketing site had a Lighthouse LCP score of 7.2s on mobile. The sales team flagged that the homepage bounce rate was 68% — well above the industry average of 45%. SEO rankings were slipping because Core Web Vitals had become a ranking signal.',
+    T: 'I was asked to investigate and own the performance improvements with a goal of getting LCP under 2.5s (Google\'s "Good" threshold) without a full rebuild.',
+    A: 'I ran a full audit using Lighthouse, WebPageTest, and the @next/bundle-analyzer. The three culprits were: (1) the hero image was a 1.4MB unoptimised PNG loaded without priority, (2) a charting library (Recharts, ~180KB gzipped) was being imported on the landing page even though the chart was below the fold, and (3) a custom font was blocking render because it had no font-display strategy. I migrated the hero to next/image with priority and a blur placeholder, added next/dynamic with ssr:false and loading="lazy" to defer the chart component, and added font-display: swap to the font-face declaration. I also found three client components that had been marked "use client" unnecessarily, costing ~40KB in hydration overhead — converting them back to Server Components removed that entirely.',
+    R: 'LCP dropped from 7.2s to 1.9s on mobile — inside the "Good" threshold. Bounce rate fell from 68% to 49% over the following 4 weeks. The bundle size for the landing page route dropped by 210KB. The approach became our standard performance checklist for all new routes.',
+  },
+  {
+    title: 'State management architecture decision (frontend)',
+    prompt: '"Describe a time you made a significant architectural decision on the frontend and how it played out."',
+    S: 'We had a mid-sized React app (around 40 screens) that was using Redux for everything — including remote server data like user profiles, posts, and notifications. The store had grown to 12 slices, loading/error state was duplicated everywhere, and cache invalidation was manual and error-prone. Engineers were spending more time managing state than building features.',
+    T: 'I proposed a significant change: migrate server state out of Redux and into React Query, keeping Redux only for genuine global UI state. The team was skeptical — Redux was "working" and a migration felt risky.',
+    A: 'I wrote a one-pager classifying our state into two buckets: server state (remote data with loading/error/stale lifecycle) vs client state (auth session, UI flags like sidebar open). I built a PoC migrating one complex screen — the notifications panel — to React Query in a day. The result: 120 lines of reducer/action/selector code collapsed to a single useQuery hook, with automatic background refresh and deduplication that Redux never had. I ran a 30-minute demo for the team, showing the DevTools side-by-side. We agreed to migrate feature-by-feature over 6 sprints rather than a big bang, so the app stayed shippable throughout.',
+    R: 'After full migration, the Redux store went from 12 slices to 3 (auth, theme, UI). Bug count related to stale data dropped by ~70% in the quarter following migration. Onboarding a new engineer to a screen went from "read 4 files" to "read 1 hook". The team adopted the same pattern for our React Native app.',
   },
   {
     title: 'Technical disagreement with a teammate',
@@ -242,6 +263,78 @@ const CONTENT = {
       </Accordion>
     </Card>
   ),
+  frontend: (
+    <Card>
+      <CardHeader title="Frontend Craft Questions" tag="React / RN / Next.js" tagColor="green" />
+      <Accordion title='"How do you approach performance optimisation in a React app?"' defaultOpen>
+        <div className="highlight"><p><strong>What they're testing:</strong> Whether you measure before optimising, know the right tools, and can translate performance work into business impact.</p></div>
+        <ol>
+          <li><strong>Measure first</strong> — Lighthouse, WebPageTest, React DevTools Profiler. Never guess.</li>
+          <li><strong>Identify the bottleneck</strong> — is it bundle size (LCP), re-renders (INP), or layout shift (CLS)?</li>
+          <li><strong>Apply targeted fix</strong> — don't refactor everything, fix the specific culprit</li>
+          <li><strong>Verify improvement</strong> — before/after metrics, not just "it feels faster"</li>
+        </ol>
+        <h3 style={{ marginTop: 12 }}>Common fixes to mention:</h3>
+        <ul>
+          <li><strong>Bundle size:</strong> <code>next/dynamic</code> for heavy components, tree-shake icon imports, Server Components to remove client JS</li>
+          <li><strong>Re-renders:</strong> <code>React.memo</code> on list items, <code>useCallback</code> for stable callbacks, selector subscriptions in Zustand</li>
+          <li><strong>Images:</strong> <code>next/image</code> with <code>priority</code> on hero, blur placeholder, correct sizing</li>
+          <li><strong>Fonts:</strong> <code>font-display: swap</code>, preconnect, use <code>next/font</code> for automatic optimisation</li>
+        </ul>
+      </Accordion>
+      <Accordion title='"How do you decide when a component needs to be split into smaller ones?"'>
+        <div className="highlight"><p><strong>What they're testing:</strong> Component design sense, understanding of React's rendering model, and maintainability thinking.</p></div>
+        <ul>
+          <li><strong>Single responsibility:</strong> If you can't name a component in one word, it probably does too much</li>
+          <li><strong>Re-render scope:</strong> If one piece of fast-changing state causes a large tree to re-render, extract the changing part into its own component</li>
+          <li><strong>Reusability:</strong> If you're copy-pasting JSX with minor variations, extract and parameterise</li>
+          <li><strong>Readability:</strong> If the render function exceeds ~80 lines, it's usually doing too much</li>
+        </ul>
+        <p><strong>Server vs Client split (Next.js App Router):</strong> Push "use client" as far down the tree as possible. A page can be a Server Component with only a small interactive island marked as client — this keeps the default of zero JS sent to the browser.</p>
+      </Accordion>
+      <Accordion title='"Tell me about a challenging bug you debugged in React."'>
+        <div className="highlight"><p><strong>What they're testing:</strong> Systematic debugging approach, deep knowledge of React internals (render cycle, closures, state batching).</p></div>
+        <p>Good bug categories to draw from:</p>
+        <ul>
+          <li><strong>Stale closure in useEffect:</strong> Effect captures an old value of a variable because the dependency array was wrong — classic and shows you understand closures in hooks</li>
+          <li><strong>Infinite render loop:</strong> Object/array created inline as a dependency to useEffect — new reference every render triggers the effect again</li>
+          <li><strong>Race condition in data fetching:</strong> Fast user clicks two requests — the slower one resolves last and overwrites the correct state. Fix: abort controller or ignore flag</li>
+          <li><strong>Hydration mismatch (Next.js):</strong> Server renders one thing, client renders another — usually caused by Date.now(), Math.random(), or browser-only APIs called during SSR</li>
+        </ul>
+        <p><strong>Framework for the answer:</strong> How did you notice it → how did you isolate it (minimal repro, React DevTools, console) → what was the root cause → what was the fix → what did you put in place to prevent it.</p>
+      </Accordion>
+      <Accordion title='"How have you handled sharing state or logic between components?"'>
+        <ul>
+          <li><strong>Lift state up</strong> — simplest. Works when siblings need to share, just move to common parent.</li>
+          <li><strong>Custom hooks</strong> — extract stateful logic (not JSX) into a reusable hook. Favourite example: <code>useDebouncedSearch</code>, <code>useInfiniteScroll</code>.</li>
+          <li><strong>Context</strong> — for low-frequency global values (theme, locale, auth). Explain why you avoid it for high-frequency state.</li>
+          <li><strong>Zustand / external store</strong> — when Context re-render cost becomes a problem, or state is needed far down many component trees.</li>
+          <li><strong>React Query</strong> — for server state, this replaces the need to share fetched data through props or context entirely — any component can subscribe to the same query key.</li>
+        </ul>
+      </Accordion>
+      <Accordion title={"\"What's your approach to building accessible React components?\""}>
+
+        <ul>
+          <li>Semantic HTML first — <code>{'<button>'}</code> not <code>{'<div onClick>'}</code>, <code>{'<nav>'}</code> not <code>{'<div className="nav">'}</code></li>
+          <li>ARIA attributes only when native semantics aren't enough — <code>aria-label</code>, <code>aria-expanded</code>, <code>role</code></li>
+          <li>Keyboard navigation — all interactive elements reachable and operable via keyboard, visible focus ring</li>
+          <li>Colour contrast — WCAG AA minimum (4.5:1 for normal text)</li>
+          <li>Test with a screen reader (VoiceOver / NVDA) and the axe DevTools browser extension</li>
+          <li>In React Native: <code>accessibilityLabel</code>, <code>accessibilityRole</code>, and <code>accessible</code> prop on touchables</li>
+        </ul>
+      </Accordion>
+      <Accordion title='"How do you approach testing in React?"'>
+        <ul>
+          <li><strong>Unit tests (Jest):</strong> Pure functions, custom hooks (with <code>renderHook</code>), utility logic</li>
+          <li><strong>Component tests (React Testing Library):</strong> Test behaviour, not implementation — query by role/label, not CSS class or test ID. "Test the way users use it."</li>
+          <li><strong>Integration tests:</strong> Test a full feature flow — form submit → API call → success state. Mock at the network boundary (MSW), not at the module level.</li>
+          <li><strong>E2E (Playwright / Cypress):</strong> Critical user journeys — login, checkout, key flows</li>
+          <li><strong>Snapshot tests:</strong> Use sparingly — they break on any UI change and give false confidence</li>
+        </ul>
+        <p><strong>React Native:</strong> Same RTL principles apply. Detox for E2E (runs on a real simulator). Jest + RNTL for component tests.</p>
+      </Accordion>
+    </Card>
+  ),
   agile: (
     <Card>
       <CardHeader title="Agile & DevSecOps Experience" tag="Process Questions" tagColor="orange" />
@@ -305,18 +398,18 @@ export default function Behavioral({ onTopicDone, doneSections }) {
           <SidebarSection title="Your Core Stories">
             <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.8 }}>
               Prepare 5 versatile stories:<br />
-              1. Led a major tech decision<br />
-              2. Production incident solved<br />
-              3. Process improvement driven<br />
-              4. Difficult stakeholder situation<br />
-              5. Learned fast under pressure
+              1. Led a major tech/frontend decision<br />
+              2. Performance problem you diagnosed & fixed<br />
+              3. Process or architecture improvement<br />
+              4. Difficult disagreement with a teammate<br />
+              5. Learned a new tech fast under pressure
             </div>
           </SidebarSection>
         </>
       }
     >
       <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 4 }}>Behavioral Interview Prep</div>
-      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Strong candidates demonstrate ownership, initiative, communication, and a DevSecOps mindset</div>
+      <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 20 }}>Ownership, initiative, communication — framed around your React / React Native / Next.js experience</div>
       {CONTENT[active]}
       {!doneSections.has(active) ? (
         <button className="btn btn-primary" onClick={() => onTopicDone(active)}>Mark as Reviewed ✓</button>
