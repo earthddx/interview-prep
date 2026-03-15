@@ -1,15 +1,20 @@
 export const quizQuestions = [
   {
-    q: "'Microfrontend' is a common required proficiency in full-stack JDs. Which tool is most commonly used to implement microfrontends in modern React apps?",
-    options: ["React Context API", "Webpack Module Federation", "CSS Modules", "Server-Side Rendering"],
-    correct: 1,
-    explanation: "Webpack 5's Module Federation is the standard approach for microfrontends, allowing independently deployed apps to share components at runtime.",
+    q: "In Next.js App Router, you have a page that shows a personalised dashboard. Which rendering strategy is most appropriate?",
+    options: ["SSG — build at deploy time", "ISR — revalidate every 60s", "SSR — render per request on the server", "CSR — fetch everything client-side after hydration"],
+    correct: 2,
+    explanation: "Personalised pages need server-side rendering (SSR) so the server can read the auth session and return user-specific data. SSG/ISR produce the same HTML for everyone. CSR would expose a flash of unauthenticated content.",
   },
   {
-    q: "An event-driven system's SQS consumer crashes mid-processing. What should you have configured to handle the failed message?",
-    options: ["Retry the Lambda immediately", "Use a Dead Letter Queue (DLQ)", "Increase Lambda timeout", "Switch to synchronous processing"],
+    q: "A React component is re-rendering too often. You wrap it with React.memo but the re-renders continue. Most likely cause?",
+    options: [
+      "React.memo doesn't work with function components",
+      "A prop is an object or function created inline in the parent — new reference every render",
+      "The component uses useState — React.memo can't help",
+      "React.memo requires a custom comparison function to work",
+    ],
     correct: 1,
-    explanation: "A DLQ captures messages that fail after max retries. Without it, failed messages are silently dropped. Configure alerts on DLQ depth to detect processing failures.",
+    explanation: "React.memo uses shallow comparison. Inline objects {} and functions () => {} get a new reference on every parent render — so React.memo sees them as changed. Fix: wrap the object in useMemo and the function in useCallback in the parent.",
   },
   {
     q: "Which deployment strategy gives you the FASTEST rollback capability?",
@@ -18,16 +23,26 @@ export const quizQuestions = [
     explanation: "Blue/Green: two environments exist simultaneously. Rollback = flip traffic back instantly (seconds). Canary requires gradually reducing new traffic.",
   },
   {
-    q: "You need to run a SAST scan in CI/CD. Which tool is most appropriate?",
-    options: ["Postman", "SonarQube", "Jest", "Terraform"],
-    correct: 1,
-    explanation: "SonarQube (or alternatives like Checkmarx, Semgrep) performs Static Application Security Testing — analyzing source code for vulnerabilities without executing it.",
+    q: "In Next.js App Router, where should you put the 'use client' directive to minimise client-side JavaScript?",
+    options: [
+      "At the top of every component file",
+      "Only in the root layout",
+      "As high up the tree as possible",
+      "As far down the tree as possible — only on the leaf components that need interactivity",
+    ],
+    correct: 3,
+    explanation: "Pushing 'use client' to leaf components keeps parent components as Server Components — their code never ships to the browser. A page can be 90% Server Components with only a small interactive island marked 'use client', dramatically reducing bundle size.",
   },
   {
-    q: "Your microservice needs to maintain data consistency across a distributed transaction spanning 3 services. What pattern should you use?",
-    options: ["Two-Phase Commit (2PC)", "Saga Pattern", "Event Sourcing", "CQRS"],
-    correct: 1,
-    explanation: "The Saga pattern chains local transactions across services with compensating transactions on failure. 2PC creates distributed locking (poor availability). Saga is the cloud-native approach.",
+    q: "You're fetching data in a React component and the user clicks quickly — two requests fire. The slower one resolves last and overwrites the correct result. What pattern fixes this?",
+    options: [
+      "Debounce the fetch function",
+      "Use useLayoutEffect instead of useEffect",
+      "Use an AbortController to cancel the previous request, or an ignore flag to discard stale results",
+      "Increase the fetch timeout",
+    ],
+    correct: 2,
+    explanation: "This is a race condition. The fix: use an AbortController (fetch supports it natively) to cancel the in-flight request when a new one starts, or set an ignore flag in the useEffect cleanup so stale responses are discarded. React Query handles this automatically.",
   },
   {
     q: "You see this output: 1, 2, 3, 3, 3. Which code produced it?",

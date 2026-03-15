@@ -4,6 +4,7 @@ import { quizQuestions } from '../data/quizQuestions';
 
 const SETS = [
   { key: 'all',      label: 'All Topics' },
+  { key: 'nextjs',   label: 'Next.js / RN' },
   { key: 'aws',      label: 'AWS / Cloud' },
   { key: 'arch',     label: 'Architecture' },
   { key: 'behavioral', label: 'Behavioral' },
