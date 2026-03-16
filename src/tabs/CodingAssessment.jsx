@@ -773,6 +773,78 @@ _dfs(node, current, results) {
 trie.insert("cat"); trie.insert("car"); trie.insert("card"); trie.insert("care");
 trie.getWordsWithPrefix("car"); // ["car", "card", "care"]`}</CodeBlock>
       </Accordion>
+      <Accordion title="Problem: Autocomplete System">
+        <p><strong>Prompt:</strong> <em>"Given a list of words and a search prefix, return all words from the list that start with that prefix, sorted alphabetically."</em></p>
+        <CodeBlock>{`// Example:
+// words  = ["cat", "car", "card", "care", "dog", "door"]
+// prefix = "car"
+// output = ["car", "card", "care"]
+
+class TrieNode {
+  constructor() {
+    this.children = {};
+    this.isEndOfWord = false;
+  }
+}
+
+class AutoComplete {
+  constructor(words) {
+    this.root = new TrieNode();
+    // Build the trie upfront — O(n × m) total
+    for (const word of words) this.insert(word);
+  }
+
+  insert(word) {
+    let node = this.root;
+    for (const char of word) {
+      if (!node.children[char]) node.children[char] = new TrieNode();
+      node = node.children[char];
+    }
+    node.isEndOfWord = true;
+  }
+
+  // 1. Walk to the end of the prefix — O(p)
+  // 2. DFS from that node to collect all words — O(w)
+  // Total: O(p + w)  where p = prefix length, w = chars in matching words
+  search(prefix) {
+    let node = this.root;
+    for (const char of prefix) {
+      if (!node.children[char]) return []; // prefix not in trie
+      node = node.children[char];
+    }
+    // DFS to collect all words under this node
+    const results = [];
+    this._dfs(node, prefix, results);
+    return results.sort(); // sort alphabetically
+  }
+
+  _dfs(node, current, results) {
+    if (node.isEndOfWord) results.push(current);
+    // Visit children in insertion order — sort() at end handles ordering
+    for (const [char, child] of Object.entries(node.children)) {
+      this._dfs(child, current + char, results);
+    }
+  }
+}
+
+// Usage
+const ac = new AutoComplete(["cat", "car", "card", "care", "dog", "door"]);
+ac.search("car");   // ["car", "card", "care"]
+ac.search("do");    // ["dog", "door"]
+ac.search("ca");    // ["car", "card", "care", "cat"]
+ac.search("xyz");   // []
+
+// Time:  O(n×m) to build, O(p + w) per search query
+// Space: O(n×m) for the trie`}</CodeBlock>
+        <div className="highlight orange">
+          <p><strong>Follow-up questions to expect:</strong></p>
+          <ul>
+            <li><strong>"What if the word list is huge?"</strong> — Build the trie once at startup, not per query. Cache popular prefix results in a hashmap.</li>
+            <li><strong>"What if you want the top 3 most searched results?"</strong> — Store a frequency count on each <code>isEndOfWord</code> node, return results sorted by count descending.</li>
+            <li><strong>"What if input can have uppercase?"</strong> — Normalise to lowercase on insert and search: <code>word.toLowerCase()</code>.</li>
+          </ul>
+        </div>
+      </Accordion>
       <Accordion title="Complexity">
         <CodeBlock>{`Operation         Time      Space
 ──────────────────────────────────────────
