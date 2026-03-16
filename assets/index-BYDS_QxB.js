@@ -580,7 +580,67 @@ _dfs(node, current, results) {
 
 // Usage
 trie.insert("cat"); trie.insert("car"); trie.insert("card"); trie.insert("care");
-trie.getWordsWithPrefix("car"); // ["car", "card", "care"]`})}),(0,j.jsxs)(P,{title:`Complexity`,children:[(0,j.jsx)(X,{children:`Operation         Time      Space
+trie.getWordsWithPrefix("car"); // ["car", "card", "care"]`})}),(0,j.jsxs)(P,{title:`Problem: Autocomplete System`,children:[(0,j.jsxs)(`p`,{children:[(0,j.jsx)(`strong`,{children:`Prompt:`}),` `,(0,j.jsx)(`em`,{children:`"Given a list of words and a search prefix, return all words from the list that start with that prefix, sorted alphabetically."`})]}),(0,j.jsx)(X,{children:`// Example:
+// words  = ["cat", "car", "card", "care", "dog", "door"]
+// prefix = "car"
+// output = ["car", "card", "care"]
+
+class TrieNode {
+  constructor() {
+    this.children = {};
+    this.isEndOfWord = false;
+  }
+}
+
+class AutoComplete {
+  constructor(words) {
+    this.root = new TrieNode();
+    // Build the trie upfront — O(n × m) total
+    for (const word of words) this.insert(word);
+  }
+
+  insert(word) {
+    let node = this.root;
+    for (const char of word) {
+      if (!node.children[char]) node.children[char] = new TrieNode();
+      node = node.children[char];
+    }
+    node.isEndOfWord = true;
+  }
+
+  // 1. Walk to the end of the prefix — O(p)
+  // 2. DFS from that node to collect all words — O(w)
+  // Total: O(p + w)  where p = prefix length, w = chars in matching words
+  search(prefix) {
+    let node = this.root;
+    for (const char of prefix) {
+      if (!node.children[char]) return []; // prefix not in trie
+      node = node.children[char];
+    }
+    // DFS to collect all words under this node
+    const results = [];
+    this._dfs(node, prefix, results);
+    return results.sort(); // sort alphabetically
+  }
+
+  _dfs(node, current, results) {
+    if (node.isEndOfWord) results.push(current);
+    // Visit children in insertion order — sort() at end handles ordering
+    for (const [char, child] of Object.entries(node.children)) {
+      this._dfs(child, current + char, results);
+    }
+  }
+}
+
+// Usage
+const ac = new AutoComplete(["cat", "car", "card", "care", "dog", "door"]);
+ac.search("car");   // ["car", "card", "care"]
+ac.search("do");    // ["dog", "door"]
+ac.search("ca");    // ["car", "card", "care", "cat"]
+ac.search("xyz");   // []
+
+// Time:  O(n×m) to build, O(p + w) per search query
+// Space: O(n×m) for the trie`}),(0,j.jsxs)(`div`,{className:`highlight orange`,children:[(0,j.jsx)(`p`,{children:(0,j.jsx)(`strong`,{children:`Follow-up questions to expect:`})}),(0,j.jsxs)(`ul`,{children:[(0,j.jsxs)(`li`,{children:[(0,j.jsx)(`strong`,{children:`"What if the word list is huge?"`}),` — Build the trie once at startup, not per query. Cache popular prefix results in a hashmap.`]}),(0,j.jsxs)(`li`,{children:[(0,j.jsx)(`strong`,{children:`"What if you want the top 3 most searched results?"`}),` — Store a frequency count on each `,(0,j.jsx)(`code`,{children:`isEndOfWord`}),` node, return results sorted by count descending.`]}),(0,j.jsxs)(`li`,{children:[(0,j.jsx)(`strong`,{children:`"What if input can have uppercase?"`}),` — Normalise to lowercase on insert and search: `,(0,j.jsx)(`code`,{children:`word.toLowerCase()`}),`.`]})]})]})]}),(0,j.jsxs)(P,{title:`Complexity`,children:[(0,j.jsx)(X,{children:`Operation         Time      Space
 ──────────────────────────────────────────
 insert(word)      O(m)      O(m) new nodes worst case
 search(word)      O(m)      O(1)
